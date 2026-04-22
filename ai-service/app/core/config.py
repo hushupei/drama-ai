@@ -1,0 +1,31 @@
+"""Application Configuration"""
+from pydantic_settings import BaseSettings
+from typing import Optional
+
+
+class Settings(BaseSettings):
+    APP_NAME: str = "Short Drama AI Service"
+    DEBUG: bool = True
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+
+    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/shortdrama"
+    REDIS_URL: str = "redis://localhost:6379/0"
+
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_BASE_URL: Optional[str] = None
+
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET: str = "short-drama"
+    MINIO_SECURE: bool = False
+
+    JAVA_BACKEND_URL: str = "http://localhost:8080"
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+
+settings = Settings()
