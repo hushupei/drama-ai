@@ -336,8 +336,13 @@ git push origin --delete task-001-project-init
 - [ ] 确认 README.md Feature 记录已更新
 - [ ] 确认代码审查通过
 - [ ] 执行合并流程
-- [ ] 推送 master 到远程仓库（后端: https://github.com/hushupei/drama-ai.git / 前端: https://github.com/hushupei/drama-ai-fe.git）
+- [ ] **推送 master 到远程仓库**（必须完成后才能标记任务完成）
 - [ ] 删除任务分支
+
+**重要**: 任务只有满足以下条件才能标记为"已完成"：
+1. 代码已合并到 master 分支
+2. **master 分支已推送到远程仓库**（https://github.com/hushupei/drama-ai.git 或 https://github.com/hushupei/drama-ai-fe.git）
+3. TASK_TRACKING.md 已更新并提交
 
 ---
 
