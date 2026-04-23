@@ -8,7 +8,7 @@
 | Task | Feature | 描述 | 完成日期 | 版本 |
 |------|---------|------|----------|------|
 | Task 1 | Project Init | 项目初始化，基础架构搭建 | 2026-04-22 | v0.1.0 |
-| Task 2 | Database Layer | 数据库实体与 Repository 层 | - | - |
+| Task 2 | Database Layer | 数据库实体与 Repository 层 | 2026-04-23 | v0.1.0 |
 | Task 3 | Service Layer | Service 层与业务逻辑 | - | - |
 | Task 4 | REST API | REST API 控制器层 | - | - |
 | Task 5 | AI Architecture | Python AI 服务基础架构 | - | - |
