@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="006-create-episodes-table" author="shortdrama">
+        <createTable tableName="episodes">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chapter_id" type="BINARY(16)"/>
+            <column name="episode_number" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="script_content" type="LONGTEXT"/>
+            <column name="video_url" type="VARCHAR(500)"/>
+            <column name="audio_url" type="VARCHAR(500)"/>
+            <column name="duration" type="INT"/>
+            <column name="word_count" type="INT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="episodes" baseColumnNames="project_id"
+                                 constraintName="fk_episodes_project"
+                                 referencedTableName="projects"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="episodes" baseColumnNames="chapter_id"
+                                 constraintName="fk_episodes_chapter"
+                                 referencedTableName="chapters"
+                                 referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_episodes_project_id" tableName="episodes">
+            <column name="project_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_episodes_chapter_id" tableName="episodes">
+            <column name="chapter_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_episodes_status" tableName="episodes">
+            <column name="status"/>
+        </createIndex>
+
+        <addUniqueConstraint tableName="episodes" columnNames="project_id,episode_number"
+                             constraintName="uk_episodes_project_episode"/>
+    </changeSet>
+
+</databaseChangeLog>
