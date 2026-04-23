@@ -61,7 +61,6 @@ public class Novel {
     private Integer totalWords;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
     private String metadata;
 
     @CreationTimestamp

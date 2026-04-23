@@ -11,7 +11,7 @@
 | 任务 | 状态 | 分支名 | 开发时长 | 测试时长 | 集成时长 | Bug 数 | 合并日期 |
 |------|------|--------|----------|----------|----------|--------|----------|
 | Task 1: 项目初始化 | ✅ 已完成 | task-001-project-init | 2h | 0.5h | 0h | 0 | 2026-04-22 |
-| Task 2: 数据库实体 | ✅ 已完成 | task-002-database-layer | 10.5h | - | - | 1 | 2026-04-23 |
+| Task 2: 数据库实体 | ✅ 已完成 | task-002-database-layer | 13h | 1h | - | 3 | 2026-04-23 |
 | Task 3: Service层 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 4: REST API | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 5: Python AI架构 | ⏳ 待开始 | - | - | - | - | - | - |
@@ -105,9 +105,32 @@
 
 | 级别 | 数量 | 修复时间 |
 |------|------|----------|
-| 严重 | 0 | - |
-| 中等 | 1 | 2h |
+| 严重 | 1 | 3h |
+| 中等 | 2 | 1.5h |
 | 轻微 | 0 | - |
+
+### Bug 修复记录
+
+**Bug #1 - 严重**:
+- **问题**: Lombok 与 Java 25 不兼容导致编译失败 `TypeTag :: UNKNOWN`
+- **原因**: 系统默认 Java 25，Lombok 1.18.32 不支持 Java 25
+- **解决**: 安装 OpenJDK 17，配置 Maven 使用 Java 17
+- **耗时**: 3h
+- **文件修改**: `pom.xml` (添加 compiler plugin 配置)
+
+**Bug #2 - 中等**:
+- **问题**: H2 测试数据库表未创建，报错 "Table 'USERS' not found"
+- **原因**: 测试配置缺少 H2 方言和驱动配置
+- **解决**: 更新所有 Repository 测试类，添加 `spring.datasource.driver-class-name` 和 `spring.jpa.properties.hibernate.dialect` 配置
+- **耗时**: 1h
+- **文件修改**: `*RepositoryTest.java` (6个测试文件)
+
+**Bug #3 - 中等**:
+- **问题**: H2 不支持 PostgreSQL 的 `jsonb` 列定义
+- **原因**: `Novel` 实体使用 `columnDefinition = "jsonb"` 导致表创建失败
+- **解决**: 移除 `@Column(columnDefinition = "jsonb")`，保留 `@JdbcTypeCode(SqlTypes.JSON)` 让 Hibernate 自动处理
+- **耗时**: 30min
+- **文件修改**: `Novel.java`
 
 ### 失败记录
 
@@ -122,8 +145,8 @@
 - 耗时: 30min
 
 **开发阶段失败 #3**:
-- 原因: 测试代码 Lombok 注解处理未生效
-- 解决: 调整 Lombok 依赖 scope (待完全解决)
+- 原因: 测试代码 Lombok 注解处理未生效 (Java 版本问题)
+- 解决: 安装并配置 Java 17
 - 耗时: 30min
 
 ### 备注
