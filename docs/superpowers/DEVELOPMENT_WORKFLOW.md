@@ -138,9 +138,9 @@ Refs: Task 2
 **必须全部满足**:
 - [ ] 开发阶段完成（代码实现）
 - [ ] 测试阶段完成（单测覆盖率 ≥ 70%，Bug 修复）
-- [ ] 集成测试阶段完成（前后端联调通过）
 - [ ] 代码审查通过
 - [ ] TASK_TRACKING.md 已更新（时间、Bug 数）
+- [ ] 任务分支已推送到远程仓库
 
 ### 合并流程
 
@@ -156,12 +156,17 @@ git rebase origin/master
 # 3. 解决冲突（如有）
 # ...
 
-# 4. 再次运行测试确认
+# 4. 在任务分支上进行集成测试（如适用）
+# - 启动本地服务
+# - 运行集成测试
+# - 验证 API 和前端交互
+
+# 5. 再次运行测试确认
 cd backend && mvn test
 cd ai-service && pytest
 cd frontend && npm test
 
-# 5. 合并到 master
+# 6. 合并到 master
 git checkout master
 git merge --no-ff task-001-project-init -m "feat: complete Task 1 - Project Initialization
 
@@ -171,10 +176,15 @@ git merge --no-ff task-001-project-init -m "feat: complete Task 1 - Project Init
 
 Refs: Task 1"
 
-# 6. 推送 master
+# 7. 推送 master 到远程（必须步骤）
 git push origin master
 
-# 7. 删除任务分支
+# 8. 在主干上进行全量集成测试
+# - 确保所有服务已启动
+# - 运行完整端到端测试
+# - 验证所有功能正常
+
+# 9. 删除任务分支
 git branch -d task-001-project-init
 git push origin --delete task-001-project-init
 ```
