@@ -33,5 +33,7 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
     long countByUser(User user);
 
+    long countByUserId(UUID userId);
+
     long countByNovelId(UUID novelId);
 }

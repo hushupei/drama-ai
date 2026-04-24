@@ -85,7 +85,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public long countByUserId(UUID userId) {
-        return projectRepository.findByUserIdOrderByCreatedAtDesc(userId).size();
+        return projectRepository.countByUserId(userId);
     }
 
     @Override
