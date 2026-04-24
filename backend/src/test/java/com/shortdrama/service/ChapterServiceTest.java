@@ -76,7 +76,7 @@ class ChapterServiceTest {
     @Test
     @DisplayName("Should find chapters by novel id")
     void findByNovelId_shouldReturnChapters() {
-        when(chapterRepository.findByNovelIdOrderByChapterNumberAsc(novelId))
+        when(chapterRepository.findByNovelId(novelId))
                 .thenReturn(Arrays.asList(testChapter));
         var result = chapterService.findByNovelId(novelId);
         assertThat(result).hasSize(1);
