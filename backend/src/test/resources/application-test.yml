@@ -14,3 +14,13 @@ spring:
         format_sql: true
   liquibase:
     enabled: false
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: test-access-key
+  secret-key: test-secret-key
+  bucket-name: test-bucket
+
+jwt:
+  secret: test-secret-key-for-jwt-signing-in-tests-only
+  expiration: 86400000
