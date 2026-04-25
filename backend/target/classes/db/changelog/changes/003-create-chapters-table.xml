@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003-create-chapters-table" author="shortdrama">
+        <createTable tableName="chapters">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="novel_id" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chapter_number" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="word_count" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_position" type="INT"/>
+            <column name="end_position" type="INT"/>
+            <column name="content" type="LONGTEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="episode_id" type="BINARY(16)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="chapters" baseColumnNames="novel_id"
+                                 constraintName="fk_chapters_novel"
+                                 referencedTableName="novels"
+                                 referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_chapters_novel_id" tableName="chapters">
+            <column name="novel_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_chapters_episode_id" tableName="chapters">
+            <column name="episode_id"/>
+        </createIndex>
+
+        <addUniqueConstraint tableName="chapters" columnNames="novel_id,chapter_number"
+                             constraintName="uk_chapters_novel_chapter"/>
+    </changeSet>
+
+</databaseChangeLog>

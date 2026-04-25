@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProjectController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.controller</a> &gt; <span class="el_source">ProjectController.java</span></div><h1>ProjectController.java</h1><pre class="source lang-java linenums">package com.shortdrama.controller;
+
+import com.shortdrama.dto.request.CreateProjectRequest;
+import com.shortdrama.dto.response.ApiResponse;
+import com.shortdrama.entity.Novel;
+import com.shortdrama.entity.Project;
+import com.shortdrama.entity.User;
+import com.shortdrama.service.NovelService;
+import com.shortdrama.service.ProjectService;
+import com.shortdrama.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping(&quot;/api/projects&quot;)
+<span class="fc" id="L26">@RequiredArgsConstructor</span>
+public class ProjectController {
+
+    private final ProjectService projectService;
+    private final UserService userService;
+    private final NovelService novelService;
+
+    @PostMapping
+    public ResponseEntity&lt;ApiResponse&lt;Project&gt;&gt; create(
+            @Valid @RequestBody CreateProjectRequest request,
+            Authentication authentication) {
+<span class="nc" id="L37">        UUID userId = (UUID) authentication.getCredentials();</span>
+<span class="nc" id="L38">        User user = userService.findById(userId)</span>
+<span class="nc" id="L39">                .orElseThrow(() -&gt; new RuntimeException(&quot;User not found&quot;));</span>
+<span class="nc" id="L40">        Novel novel = novelService.findById(request.getNovelId())</span>
+<span class="nc" id="L41">                .orElseThrow(() -&gt; new RuntimeException(&quot;Novel not found&quot;));</span>
+
+<span class="nc" id="L43">        Project project = Project.builder()</span>
+<span class="nc" id="L44">                .user(user)</span>
+<span class="nc" id="L45">                .novel(novel)</span>
+<span class="nc" id="L46">                .name(request.getName())</span>
+<span class="nc" id="L47">                .description(request.getDescription())</span>
+<span class="nc" id="L48">                .type(request.getType())</span>
+<span class="nc" id="L49">                .targetEpisodeCount(request.getTargetEpisodeCount())</span>
+<span class="nc" id="L50">                .targetDuration(request.getTargetDuration())</span>
+<span class="nc" id="L51">                .status(Project.ProjectStatus.DRAFT)</span>
+<span class="nc" id="L52">                .build();</span>
+
+<span class="nc" id="L54">        Project created = projectService.createProject(project);</span>
+<span class="nc" id="L55">        return ResponseEntity.ok(ApiResponse.success(&quot;Project created&quot;, created));</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Project&gt;&gt; getById(@PathVariable UUID id) {
+<span class="nc" id="L60">        Project project = projectService.findById(id)</span>
+<span class="nc" id="L61">                .orElseThrow(() -&gt; new RuntimeException(&quot;Project not found&quot;));</span>
+<span class="nc" id="L62">        return ResponseEntity.ok(ApiResponse.success(project));</span>
+    }
+
+    @GetMapping
+    public ResponseEntity&lt;ApiResponse&lt;Page&lt;Project&gt;&gt;&gt; getMyProjects(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size,
+            @RequestParam(defaultValue = &quot;createdAt,desc&quot;) String sort,
+            Authentication authentication) {
+<span class="nc" id="L71">        UUID userId = (UUID) authentication.getCredentials();</span>
+<span class="nc" id="L72">        String[] sortParams = sort.split(&quot;,&quot;);</span>
+<span class="nc" id="L73">        Sort sortObj = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);</span>
+<span class="nc" id="L74">        Pageable pageable = PageRequest.of(page, size, sortObj);</span>
+
+<span class="nc" id="L76">        Page&lt;Project&gt; projects = projectService.findByUserId(userId, pageable);</span>
+<span class="nc" id="L77">        return ResponseEntity.ok(ApiResponse.success(projects));</span>
+    }
+
+    @GetMapping(&quot;/novel/{novelId}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;List&lt;Project&gt;&gt;&gt; getByNovelId(@PathVariable UUID novelId) {
+<span class="nc" id="L82">        List&lt;Project&gt; projects = projectService.findByNovelId(novelId);</span>
+<span class="nc" id="L83">        return ResponseEntity.ok(ApiResponse.success(projects));</span>
+    }
+
+    @GetMapping(&quot;/status/{status}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;List&lt;Project&gt;&gt;&gt; getByStatus(
+            @PathVariable Project.ProjectStatus status,
+            Authentication authentication) {
+<span class="nc" id="L90">        UUID userId = (UUID) authentication.getCredentials();</span>
+<span class="nc" id="L91">        List&lt;Project&gt; projects = projectService.findByUserIdAndStatus(userId, status);</span>
+<span class="nc" id="L92">        return ResponseEntity.ok(ApiResponse.success(projects));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Project&gt;&gt; update(
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateProjectRequest request) {
+<span class="nc" id="L99">        Project project = Project.builder()</span>
+<span class="nc" id="L100">                .name(request.getName())</span>
+<span class="nc" id="L101">                .description(request.getDescription())</span>
+<span class="nc" id="L102">                .type(request.getType())</span>
+<span class="nc" id="L103">                .targetEpisodeCount(request.getTargetEpisodeCount())</span>
+<span class="nc" id="L104">                .targetDuration(request.getTargetDuration())</span>
+<span class="nc" id="L105">                .build();</span>
+
+<span class="nc" id="L107">        Project updated = projectService.updateProject(id, project);</span>
+<span class="nc" id="L108">        return ResponseEntity.ok(ApiResponse.success(&quot;Project updated&quot;, updated));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; delete(@PathVariable UUID id) {
+<span class="nc" id="L113">        projectService.deleteProject(id);</span>
+<span class="nc" id="L114">        return ResponseEntity.ok(ApiResponse.success(&quot;Project deleted&quot;, null));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/status&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Project&gt;&gt; updateStatus(
+            @PathVariable UUID id,
+            @RequestParam Project.ProjectStatus status) {
+<span class="nc" id="L121">        Project updated = projectService.updateStatus(id, status);</span>
+<span class="nc" id="L122">        return ResponseEntity.ok(ApiResponse.success(&quot;Status updated&quot;, updated));</span>
+    }
+
+    @GetMapping(&quot;/count&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Long&gt;&gt; count(Authentication authentication) {
+<span class="nc" id="L127">        UUID userId = (UUID) authentication.getCredentials();</span>
+<span class="nc" id="L128">        long count = projectService.countByUserId(userId);</span>
+<span class="nc" id="L129">        return ResponseEntity.ok(ApiResponse.success(count));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

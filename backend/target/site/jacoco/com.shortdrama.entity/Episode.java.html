@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Episode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.entity</a> &gt; <span class="el_source">Episode.java</span></div><h1>Episode.java</h1><pre class="source lang-java linenums">package com.shortdrama.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = &quot;episodes&quot;)
+<span class="pc bnc" id="L14" title="All 126 branches missed.">@Data</span>
+<span class="fc" id="L15">@NoArgsConstructor</span>
+<span class="fc" id="L16">@AllArgsConstructor</span>
+<span class="pc bfc" id="L17" title="All 2 branches covered.">@Builder</span>
+public class Episode {
+
+    @Id
+    @UuidGenerator
+    @Column(updatable = false, nullable = false)
+<span class="fc" id="L23">    private UUID id;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;project_id&quot;, nullable = false)
+<span class="nc" id="L27">    private Project project;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;chapter_id&quot;)
+<span class="fc" id="L31">    private Chapter chapter;</span>
+
+    @Column(nullable = false)
+<span class="fc" id="L34">    private Integer episodeNumber;</span>
+
+    @Column(length = 255)
+<span class="fc" id="L37">    private String title;</span>
+
+    @Column(length = 1000)
+<span class="fc" id="L40">    private String description;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+<span class="nc" id="L45">    private EpisodeStatus status = EpisodeStatus.PENDING;</span>
+
+    @Column(columnDefinition = &quot;TEXT&quot;)
+<span class="fc" id="L48">    private String scriptContent;</span>
+
+    @Column(length = 500)
+<span class="nc" id="L51">    private String videoUrl;</span>
+
+    @Column(length = 500)
+<span class="nc" id="L54">    private String audioUrl;</span>
+
+    @Column
+<span class="fc" id="L57">    private Integer duration;</span>
+
+    @Column
+<span class="fc" id="L60">    private Integer wordCount;</span>
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+<span class="nc" id="L64">    private LocalDateTime createdAt;</span>
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+<span class="nc" id="L68">    private LocalDateTime updatedAt;</span>
+
+    @Column
+<span class="nc" id="L71">    private LocalDateTime completedAt;</span>
+
+<span class="fc" id="L73">    public enum EpisodeStatus {</span>
+<span class="fc" id="L74">        PENDING, GENERATING_SCRIPT, GENERATING_SCENES, GENERATING_AUDIO, RENDERING_VIDEO, COMPLETED, FAILED</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

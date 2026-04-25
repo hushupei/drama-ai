@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MinioStorageService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.service</a> &gt; <span class="el_source">MinioStorageService.java</span></div><h1>MinioStorageService.java</h1><pre class="source lang-java linenums">package com.shortdrama.service;
+
+import io.minio.*;
+import io.minio.errors.*;
+import io.minio.http.Method;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
+
+<span class="fc" id="L16">@Slf4j</span>
+@Service
+<span class="fc" id="L18">@RequiredArgsConstructor</span>
+public class MinioStorageService implements StorageService {
+
+    private final MinioClient minioClient;
+
+    @Override
+    public String uploadFile(String bucketName, String objectName, InputStream stream, long size, String contentType) {
+        try {
+<span class="nc bnc" id="L26" title="All 2 branches missed.">            if (!bucketExists(bucketName)) {</span>
+<span class="nc" id="L27">                createBucket(bucketName);</span>
+            }
+            
+<span class="nc" id="L30">            minioClient.putObject(</span>
+<span class="nc" id="L31">                    PutObjectArgs.builder()</span>
+<span class="nc" id="L32">                            .bucket(bucketName)</span>
+<span class="nc" id="L33">                            .object(objectName)</span>
+<span class="nc" id="L34">                            .stream(stream, size, -1)</span>
+<span class="nc" id="L35">                            .contentType(contentType)</span>
+<span class="nc" id="L36">                            .build()</span>
+            );
+            
+<span class="nc" id="L39">            log.info(&quot;File uploaded successfully: {}/{}&quot;, bucketName, objectName);</span>
+<span class="nc" id="L40">            return objectName;</span>
+<span class="nc" id="L41">        } catch (Exception e) {</span>
+<span class="nc" id="L42">            log.error(&quot;Failed to upload file: {}/{}&quot;, bucketName, objectName, e);</span>
+<span class="nc" id="L43">            throw new RuntimeException(&quot;Failed to upload file&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public InputStream downloadFile(String bucketName, String objectName) {
+        try {
+<span class="nc" id="L50">            return minioClient.getObject(</span>
+<span class="nc" id="L51">                    GetObjectArgs.builder()</span>
+<span class="nc" id="L52">                            .bucket(bucketName)</span>
+<span class="nc" id="L53">                            .object(objectName)</span>
+<span class="nc" id="L54">                            .build()</span>
+            );
+<span class="nc" id="L56">        } catch (Exception e) {</span>
+<span class="nc" id="L57">            log.error(&quot;Failed to download file: {}/{}&quot;, bucketName, objectName, e);</span>
+<span class="nc" id="L58">            throw new RuntimeException(&quot;Failed to download file&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public void deleteFile(String bucketName, String objectName) {
+        try {
+<span class="nc" id="L65">            minioClient.removeObject(</span>
+<span class="nc" id="L66">                    RemoveObjectArgs.builder()</span>
+<span class="nc" id="L67">                            .bucket(bucketName)</span>
+<span class="nc" id="L68">                            .object(objectName)</span>
+<span class="nc" id="L69">                            .build()</span>
+            );
+<span class="nc" id="L71">            log.info(&quot;File deleted successfully: {}/{}&quot;, bucketName, objectName);</span>
+<span class="nc" id="L72">        } catch (Exception e) {</span>
+<span class="nc" id="L73">            log.error(&quot;Failed to delete file: {}/{}&quot;, bucketName, objectName, e);</span>
+<span class="nc" id="L74">            throw new RuntimeException(&quot;Failed to delete file&quot;, e);</span>
+<span class="nc" id="L75">        }</span>
+<span class="nc" id="L76">    }</span>
+
+    @Override
+    public String getFileUrl(String bucketName, String objectName, int expirySeconds) {
+        try {
+<span class="nc" id="L81">            return minioClient.getPresignedObjectUrl(</span>
+<span class="nc" id="L82">                    GetPresignedObjectUrlArgs.builder()</span>
+<span class="nc" id="L83">                            .method(Method.GET)</span>
+<span class="nc" id="L84">                            .bucket(bucketName)</span>
+<span class="nc" id="L85">                            .object(objectName)</span>
+<span class="nc" id="L86">                            .expiry(expirySeconds, TimeUnit.SECONDS)</span>
+<span class="nc" id="L87">                            .build()</span>
+            );
+<span class="nc" id="L89">        } catch (Exception e) {</span>
+<span class="nc" id="L90">            log.error(&quot;Failed to get file URL: {}/{}&quot;, bucketName, objectName, e);</span>
+<span class="nc" id="L91">            throw new RuntimeException(&quot;Failed to get file URL&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public boolean bucketExists(String bucketName) {
+        try {
+<span class="nc" id="L98">            return minioClient.bucketExists(</span>
+<span class="nc" id="L99">                    BucketExistsArgs.builder()</span>
+<span class="nc" id="L100">                            .bucket(bucketName)</span>
+<span class="nc" id="L101">                            .build()</span>
+            );
+<span class="nc" id="L103">        } catch (Exception e) {</span>
+<span class="nc" id="L104">            log.error(&quot;Failed to check bucket existence: {}&quot;, bucketName, e);</span>
+<span class="nc" id="L105">            throw new RuntimeException(&quot;Failed to check bucket existence&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public void createBucket(String bucketName) {
+        try {
+<span class="nc" id="L112">            minioClient.makeBucket(</span>
+<span class="nc" id="L113">                    MakeBucketArgs.builder()</span>
+<span class="nc" id="L114">                            .bucket(bucketName)</span>
+<span class="nc" id="L115">                            .build()</span>
+            );
+<span class="nc" id="L117">            log.info(&quot;Bucket created successfully: {}&quot;, bucketName);</span>
+<span class="nc" id="L118">        } catch (Exception e) {</span>
+<span class="nc" id="L119">            log.error(&quot;Failed to create bucket: {}&quot;, bucketName, e);</span>
+<span class="nc" id="L120">            throw new RuntimeException(&quot;Failed to create bucket&quot;, e);</span>
+<span class="nc" id="L121">        }</span>
+<span class="nc" id="L122">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

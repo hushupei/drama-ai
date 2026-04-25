@@ -1,5 +1,6 @@
 package com.shortdrama.dto.request;
 
+import com.shortdrama.entity.Project;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -22,7 +23,7 @@ public class CreateProjectRequest {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
-    private String type;
+    private Project.ProjectType type;
 
     private Integer targetEpisodeCount;
 

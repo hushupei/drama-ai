@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.exception</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package com.shortdrama.exception;
+
+import com.shortdrama.dto.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
+
+<span class="fc" id="L15">@Slf4j</span>
+@RestControllerAdvice
+<span class="fc" id="L17">public class GlobalExceptionHandler {</span>
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; handleBusinessException(BusinessException ex, HttpServletRequest request) {
+<span class="nc" id="L21">        log.warn(&quot;Business exception: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L22">        ApiResponse&lt;Void&gt; response = ApiResponse.&lt;Void&gt;builder()</span>
+<span class="nc" id="L23">                .success(false)</span>
+<span class="nc" id="L24">                .message(ex.getMessage())</span>
+<span class="nc" id="L25">                .path(request.getRequestURI())</span>
+<span class="nc" id="L26">                .build();</span>
+<span class="nc" id="L27">        return ResponseEntity.badRequest().body(response);</span>
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
+<span class="nc" id="L32">        log.warn(&quot;Resource not found: {} - {}&quot;, ex.getResourceType(), ex.getResourceId());</span>
+<span class="nc" id="L33">        ApiResponse&lt;Void&gt; response = ApiResponse.&lt;Void&gt;builder()</span>
+<span class="nc" id="L34">                .success(false)</span>
+<span class="nc" id="L35">                .message(ex.getMessage())</span>
+<span class="nc" id="L36">                .path(request.getRequestURI())</span>
+<span class="nc" id="L37">                .build();</span>
+<span class="nc" id="L38">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);</span>
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; handleValidationException(ValidationException ex, HttpServletRequest request) {
+<span class="nc" id="L43">        log.warn(&quot;Validation error: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L44">        ApiResponse&lt;Void&gt; response = ApiResponse.&lt;Void&gt;builder()</span>
+<span class="nc" id="L45">                .success(false)</span>
+<span class="nc" id="L46">                .message(ex.getMessage())</span>
+<span class="nc" id="L47">                .path(request.getRequestURI())</span>
+<span class="nc" id="L48">                .build();</span>
+<span class="nc" id="L49">        return ResponseEntity.badRequest().body(response);</span>
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+<span class="nc" id="L54">        log.warn(&quot;Unauthorized: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L55">        ApiResponse&lt;Void&gt; response = ApiResponse.&lt;Void&gt;builder()</span>
+<span class="nc" id="L56">                .success(false)</span>
+<span class="nc" id="L57">                .message(ex.getMessage())</span>
+<span class="nc" id="L58">                .path(request.getRequestURI())</span>
+<span class="nc" id="L59">                .build();</span>
+<span class="nc" id="L60">        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);</span>
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+<span class="nc" id="L65">        String errorMessage = ex.getBindingResult().getFieldErrors().stream()</span>
+<span class="nc" id="L66">                .map(FieldError::getDefaultMessage)</span>
+<span class="nc" id="L67">                .collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="nc" id="L68">        log.warn(&quot;Validation failed: {}&quot;, errorMessage);</span>
+<span class="nc" id="L69">        ApiResponse&lt;Void&gt; response = ApiResponse.&lt;Void&gt;builder()</span>
+<span class="nc" id="L70">                .success(false)</span>
+<span class="nc" id="L71">                .message(errorMessage)</span>
+<span class="nc" id="L72">                .path(request.getRequestURI())</span>
+<span class="nc" id="L73">                .build();</span>
+<span class="nc" id="L74">        return ResponseEntity.badRequest().body(response);</span>
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; handleGenericException(Exception ex, HttpServletRequest request) {
+<span class="nc" id="L79">        log.error(&quot;Unexpected error occurred&quot;, ex);</span>
+<span class="nc" id="L80">        ApiResponse&lt;Void&gt; response = ApiResponse.&lt;Void&gt;builder()</span>
+<span class="nc" id="L81">                .success(false)</span>
+<span class="nc" id="L82">                .message(&quot;An unexpected error occurred&quot;)</span>
+<span class="nc" id="L83">                .path(request.getRequestURI())</span>
+<span class="nc" id="L84">                .build();</span>
+<span class="nc" id="L85">        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CharacterServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.service.impl</a> &gt; <span class="el_source">CharacterServiceImpl.java</span></div><h1>CharacterServiceImpl.java</h1><pre class="source lang-java linenums">package com.shortdrama.service.impl;
+
+import com.shortdrama.entity.Character;
+import com.shortdrama.exception.ResourceNotFoundException;
+import com.shortdrama.repository.CharacterRepository;
+import com.shortdrama.service.CharacterService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+<span class="fc" id="L18">@RequiredArgsConstructor</span>
+@Transactional(readOnly = true)
+public class CharacterServiceImpl implements CharacterService {
+
+    private final CharacterRepository characterRepository;
+
+    @Override
+    @Transactional
+    public Character createCharacter(Character character) {
+<span class="fc" id="L27">        return characterRepository.save(character);</span>
+    }
+
+    @Override
+    @Transactional
+    public Character updateCharacter(UUID id, Character character) {
+<span class="fc" id="L33">        Character existingCharacter = characterRepository.findById(id)</span>
+<span class="pc" id="L34">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Character&quot;, id.toString()));</span>
+<span class="fc" id="L35">        existingCharacter.setName(character.getName());</span>
+<span class="fc" id="L36">        existingCharacter.setGender(character.getGender());</span>
+<span class="fc" id="L37">        existingCharacter.setDescription(character.getDescription());</span>
+<span class="fc" id="L38">        existingCharacter.setPersonality(character.getPersonality());</span>
+<span class="fc" id="L39">        existingCharacter.setAppearance(character.getAppearance());</span>
+<span class="fc" id="L40">        existingCharacter.setReferenceImageUrl(character.getReferenceImageUrl());</span>
+<span class="fc" id="L41">        existingCharacter.setStatus(character.getStatus());</span>
+<span class="fc" id="L42">        return characterRepository.save(existingCharacter);</span>
+    }
+
+    @Override
+    @Transactional
+    public void deleteCharacter(UUID id) {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (!characterRepository.existsById(id)) {</span>
+<span class="nc" id="L49">            throw new ResourceNotFoundException(&quot;Character&quot;, id.toString());</span>
+        }
+<span class="nc" id="L51">        characterRepository.deleteById(id);</span>
+<span class="nc" id="L52">    }</span>
+
+    @Override
+    public Optional&lt;Character&gt; findById(UUID id) {
+<span class="nc" id="L56">        return characterRepository.findById(id);</span>
+    }
+
+    @Override
+    public List&lt;Character&gt; findByNovelId(UUID novelId) {
+<span class="fc" id="L61">        return characterRepository.findByNovelId(novelId);</span>
+    }
+
+    @Override
+    public Page&lt;Character&gt; findByNovelId(UUID novelId, Pageable pageable) {
+<span class="nc" id="L66">        return characterRepository.findByNovelId(novelId, pageable);</span>
+    }
+
+    @Override
+    public List&lt;Character&gt; findByNovelIdAndStatus(UUID novelId, Character.CharacterStatus status) {
+<span class="fc" id="L71">        return characterRepository.findByNovelIdAndStatus(novelId, status);</span>
+    }
+
+    @Override
+    public Optional&lt;Character&gt; findByNovelIdAndName(UUID novelId, String name) {
+<span class="nc" id="L76">        return characterRepository.findByNovelIdAndName(novelId, name);</span>
+    }
+
+    @Override
+    public boolean existsByNovelIdAndName(UUID novelId, String name) {
+<span class="fc" id="L81">        return characterRepository.existsByNovelIdAndName(novelId, name);</span>
+    }
+
+    @Override
+    public long countByNovelId(UUID novelId) {
+<span class="fc" id="L86">        return characterRepository.countByNovelId(novelId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Project.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.entity</a> &gt; <span class="el_source">Project.java</span></div><h1>Project.java</h1><pre class="source lang-java linenums">package com.shortdrama.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = &quot;projects&quot;)
+<span class="pc bnc" id="L16" title="All 102 branches missed.">@Data</span>
+<span class="fc" id="L17">@NoArgsConstructor</span>
+<span class="fc" id="L18">@AllArgsConstructor</span>
+<span class="pc bpc" id="L19" title="1 of 6 branches missed.">@Builder</span>
+public class Project {
+
+    @Id
+    @UuidGenerator
+    @Column(updatable = false, nullable = false)
+<span class="fc" id="L25">    private UUID id;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+<span class="nc" id="L29">    private User user;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;novel_id&quot;, nullable = false)
+<span class="nc" id="L33">    private Novel novel;</span>
+
+    @Column(nullable = false, length = 255)
+<span class="fc" id="L36">    private String name;</span>
+
+    @Column(length = 1000)
+<span class="fc" id="L39">    private String description;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+<span class="nc" id="L44">    private ProjectStatus status = ProjectStatus.DRAFT;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+<span class="fc" id="L49">    private ProjectType type = ProjectType.SINGLE_EPISODE;</span>
+
+    @Column
+<span class="fc" id="L52">    private Integer targetEpisodeCount;</span>
+
+    @Column
+<span class="fc" id="L55">    private Integer targetDuration;</span>
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+<span class="nc" id="L59">    private LocalDateTime createdAt;</span>
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+<span class="nc" id="L63">    private LocalDateTime updatedAt;</span>
+
+    @OneToMany(mappedBy = &quot;project&quot;, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+<span class="nc" id="L67">    private List&lt;Episode&gt; episodes = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L69">    public enum ProjectStatus {</span>
+<span class="fc" id="L70">        DRAFT, IN_PROGRESS, COMPLETED, ARCHIVED</span>
+    }
+
+<span class="fc" id="L73">    public enum ProjectType {</span>
+<span class="fc" id="L74">        SINGLE_EPISODE, MULTI_EPISODE, SERIES</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
