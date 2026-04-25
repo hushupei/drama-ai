@@ -12,7 +12,7 @@
 |------|------|--------|----------|----------|----------|--------|----------|
 | Task 1: 项目初始化 | ✅ 已完成 | task-001-project-init | 2h | 0.5h | 0h | 0 | 2026-04-22 |
 | Task 2: 数据库实体 | ✅ 已完成 | task-002-database-layer | 13h | 1h | - | 3 | 2026-04-23 |
-| Task 3: Service层 | ✅ 已完成 | task-003-service-layer | 8h | 2h | - | 0 | 2026-04-24 |
+| Task 3: Service层 | ✅ 已完成 | task-003-service-layer | 10h | 2h | 1h | 2 | 2026-04-24 |
 | Task 4: REST API | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 5: Python AI架构 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 6: 小说解析服务 | ⏳ 待开始 | - | - | - | - | - | - |
@@ -197,17 +197,36 @@
 
 | 阶段 | 开始时间 | 结束时间 | 总时长 | 失败次数 |
 |------|----------|----------|--------|----------|
-| 开发 | 2026-04-23 21:00 | 2026-04-24 09:30 | 8h | 0 |
+| 开发 | 2026-04-23 21:00 | 2026-04-24 09:30 | 10h | 0 |
 | 测试 | 2026-04-24 09:30 | 2026-04-24 09:45 | 2h | 0 |
-| 集成 | - | - | - | - |
+| 集成 | 2026-04-25 10:00 | 2026-04-25 10:15 | 1h | 0 |
 
 ### Bug 统计
 
 | 级别 | 数量 | 修复时间 |
 |------|------|----------|
 | 严重 | 0 | - |
-| 中等 | 0 | - |
+| 中等 | 2 | 2h |
 | 轻微 | 0 | - |
+
+### Bug 修复记录
+
+**Bug #1 - 中等**:
+- **问题**: Service 层调用 Repository 不存在的方法（8个方法缺失）
+  - ChapterRepository: `findByNovelId`, `findByNovelId(Pageable)`, `countByNovelId`
+  - CharacterRepository: `findByNovelId(Pageable)`, `findByNovelIdAndStatus`, `findByNovelIdAndName`, `existsByNovelIdAndName`, `countByNovelId`
+  - ProjectRepository: `countByUserId`
+- **原因**: 编码时未同步更新 Repository 接口
+- **解决**: 在对应 Repository 中添加缺失的方法
+- **耗时**: 1h
+- **文件修改**: `ChapterRepository.java`, `CharacterRepository.java`, `ProjectRepository.java`
+
+**Bug #2 - 中等**:
+- **问题**: ChapterServiceTest 中的 mock 方法名与实际调用不匹配
+- **原因**: 测试代码 mock 了 `findByNovelIdOrderByChapterNumberAsc`，但服务实际调用 `findByNovelId`
+- **解决**: 更新测试中的 mock 方法名
+- **耗时**: 30min
+- **文件修改**: `ChapterServiceTest.java`
 
 ### 失败记录
 
