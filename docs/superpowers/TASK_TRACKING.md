@@ -18,7 +18,7 @@
 | Task 6: 小说解析服务 | ✅ 已完成 | task-006-novel-parser | 1h | - | - | 0 | 2026-04-26 |
 | Task 7: 前端架构 | ✅ 已完成 | task-007-frontend-arch | 1h | - | - | 0 | 2026-04-26 |
 | Task 8: 前端页面 | ✅ 已完成 | task-008-frontend-pages | 2h | - | - | 0 | - |
-| Task 9: 集成测试 | ⏳ 待开始 | - | - | - | - | - | - |
+| Task 9: 集成测试 | 🔄 开发中 | task-009-integration-test | - | - | - | - | - |
 
 **图例**:
 - ⏳ 待开始
@@ -75,12 +75,16 @@
 ## Task 9: 集成测试
 
 **分支**: `task-009-integration-test`  
-**状态**: ⏳ 待开始
+**状态**: 🔄 开发中
+
+### 已完成
+- [x] 后端 API 集成测试 (NovelApiIntegrationTest, CharacterApiIntegrationTest)
+- [x] 部署文档
 
 ### 待完成
-- [ ] 端到端测试用例
+- [ ] Python AI 服务集成测试  
+- [ ] 前端 E2E 测试
 - [ ] 性能测试
-- [ ] 部署文档
 
 ----
 

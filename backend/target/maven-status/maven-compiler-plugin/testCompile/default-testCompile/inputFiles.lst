@@ -1,4 +1,6 @@
 /Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/ApplicationTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/integration/CharacterApiIntegrationTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/integration/NovelApiIntegrationTest.java
 /Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/ChapterRepositoryTest.java
 /Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/CharacterRepositoryTest.java
 /Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/EpisodeRepositoryTest.java
