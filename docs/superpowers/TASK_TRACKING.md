@@ -13,7 +13,7 @@
 | Task 1: 项目初始化 | ✅ 已完成 | task-001-project-init | 2h | 0.5h | 0h | 0 | 2026-04-22 |
 | Task 2: 数据库实体 | ✅ 已完成 | task-002-database-layer | 13h | 1h | - | 3 | 2026-04-23 |
 | Task 3: Service层 | ✅ 已完成 | task-003-service-layer | 10h | 2h | 1h | 2 | 2026-04-24 |
-| Task 4: REST API | 🧪 测试中 | task-004-rest-api | 2h | - | - | 0 | - |
+| Task 4: REST API | ✅ 已完成 | task-004-rest-api | 2h | 0.5h | 0.5h | 0 | 2026-04-26 |
 | Task 5: Python AI架构 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 6: 小说解析服务 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 7: 前端架构 | ⏳ 待开始 | - | - | - | - | - | - |
