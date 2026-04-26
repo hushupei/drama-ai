@@ -14,9 +14,9 @@
 | Task 2: 数据库实体 | ✅ 已完成 | task-002-database-layer | 13h | 1h | - | 3 | 2026-04-23 |
 | Task 3: Service层 | ✅ 已完成 | task-003-service-layer | 10h | 2h | 1h | 2 | 2026-04-24 |
 | Task 4: REST API | ✅ 已完成 | task-004-rest-api | 2h | 0.5h | 0.5h | 0 | 2026-04-26 |
-| Task 5: Python AI架构 | 🔄 开发中 | task-005-ai-architecture | - | - | - | - | - |
-| Task 6: 小说解析服务 | ⏳ 待开始 | - | - | - | - | - | - |
-| Task 7: 前端架构 | ⏳ 待开始 | - | - | - | - | - | - |
+| Task 5: Python AI架构 | ✅ 已完成 | task-005-ai-architecture | 1h | - | - | 0 | 2026-04-26 |
+| Task 6: 小说解析服务 | ✅ 已完成 | task-006-novel-parser | 1h | - | - | 0 | 2026-04-26 |
+| Task 7: 前端架构 | ✅ 已完成 | task-007-frontend-arch | 1h | - | - | 0 | 2026-04-26 |
 | Task 8: 前端页面 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 9: 集成测试 | ⏳ 待开始 | - | - | - | - | - | - |
 
@@ -30,28 +30,50 @@
 
 ----
 
-## Task 5: Python AI 服务基础架构
+## Task 1-7: 已完成
 
-**分支**: `task-005-ai-architecture`  
-**状态**: 🔄 开发中  
-**负责人**: Claude
+所有架构任务已完成，代码已合并到 main 分支。
 
-### 交付物
-- [x] FastAPI 路由结构
-  - health.py - 健康检查端点
-  - tasks.py - 任务管理 API
-- [x] Celery 配置 (celery.py)
-- [x] MinIO 存储服务 (minio_client.py)
-- [x] 日志配置 (logging.py)
-- [x] Celery 任务定义
-  - parse.py - 小说解析任务
-  - generate.py - 脚本生成任务
-  - render.py - 视频渲染任务
-- [x] 基础测试 (test_main.py)
+### Task 6 交付物
+- [x] 数据库模型 (Chapter, Character)
+- [x] ParserService - 智能小说解析服务
+- [x] LLMService - OpenAI GPT 集成
+- [x] BackendClient - Java 后端通信
+- [x] 增强的 Celery 解析任务
+- [x] 章节提取 (Regex + LLM 双模式)
+- [x] 角色提取 (Regex + LLM 双模式)
+- [x] 章节摘要生成
 
 ----
 
-## Task 7: 前端基础架构
+## Task 8: 前端页面开发
 
-**分支**: `task-007-frontend-arch`  
+**分支**: `task-008-frontend-pages`  
 **状态**: ⏳ 待开始
+
+### 待完成
+- [ ] 角色管理页面
+- [ ] 剧集生成页面
+- [ ] 视频预览页面
+- [ ] 用户设置页面
+
+----
+
+## Task 9: 集成测试
+
+**分支**: `task-009-integration-test`  
+**状态**: ⏳ 待开始
+
+### 待完成
+- [ ] 端到端测试用例
+- [ ] 性能测试
+- [ ] 部署文档
+
+----
+
+## 修订记录
+
+| 版本 | 日期 | 修订内容 |
+|------|------|----------|
+| v1.0 | 2026-04-22 | 初始版本 |
+| v1.3 | 2026-04-26 | Task 5, 6, 7 完成 |
