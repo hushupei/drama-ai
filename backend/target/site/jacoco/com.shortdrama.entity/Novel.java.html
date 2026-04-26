@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Novel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.entity</a> &gt; <span class="el_source">Novel.java</span></div><h1>Novel.java</h1><pre class="source lang-java linenums">package com.shortdrama.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = &quot;novels&quot;)
+<span class="pc bnc" id="L18" title="All 134 branches missed.">@Data</span>
+<span class="fc" id="L19">@NoArgsConstructor</span>
+<span class="fc" id="L20">@AllArgsConstructor</span>
+<span class="pc bpc" id="L21" title="2 of 8 branches missed.">@Builder</span>
+public class Novel {
+
+    @Id
+    @UuidGenerator
+    @Column(updatable = false, nullable = false)
+<span class="fc" id="L27">    private UUID id;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+<span class="nc" id="L31">    private User user;</span>
+
+    @Column(nullable = false, length = 255)
+<span class="fc" id="L34">    private String title;</span>
+
+    @Column(length = 500)
+<span class="fc" id="L37">    private String description;</span>
+
+    @Column(length = 100)
+<span class="fc" id="L40">    private String author;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+<span class="fc" id="L45">    private NovelStatus status = NovelStatus.UPLOADED;</span>
+
+    @Column(nullable = false)
+    @Builder.Default
+<span class="pc" id="L49">    private Long fileSize = 0L;</span>
+
+    @Column(length = 500)
+<span class="nc" id="L52">    private String filePath;</span>
+
+    @Column(length = 50)
+<span class="nc" id="L55">    private String encoding;</span>
+
+    @Column
+<span class="nc" id="L58">    private Integer totalChapters;</span>
+
+    @Column
+<span class="nc" id="L61">    private Integer totalWords;</span>
+
+    @JdbcTypeCode(SqlTypes.JSON)
+<span class="nc" id="L64">    private String metadata;</span>
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+<span class="nc" id="L68">    private LocalDateTime createdAt;</span>
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+<span class="nc" id="L72">    private LocalDateTime updatedAt;</span>
+
+    @OneToMany(mappedBy = &quot;novel&quot;, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+<span class="nc" id="L76">    private List&lt;Chapter&gt; chapters = new ArrayList&lt;&gt;();</span>
+
+    @OneToMany(mappedBy = &quot;novel&quot;, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+<span class="nc" id="L80">    private List&lt;Character&gt; characters = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L82">    public enum NovelStatus {</span>
+<span class="fc" id="L83">        UPLOADED,</span>
+<span class="fc" id="L84">        PARSING,</span>
+<span class="fc" id="L85">        PARSED,</span>
+<span class="fc" id="L86">        PROCESSING,</span>
+<span class="fc" id="L87">        COMPLETED</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

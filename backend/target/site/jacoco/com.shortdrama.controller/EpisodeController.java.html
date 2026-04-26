@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EpisodeController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.controller</a> &gt; <span class="el_source">EpisodeController.java</span></div><h1>EpisodeController.java</h1><pre class="source lang-java linenums">package com.shortdrama.controller;
+
+import com.shortdrama.dto.request.CreateEpisodeRequest;
+import com.shortdrama.dto.response.ApiResponse;
+import com.shortdrama.entity.Chapter;
+import com.shortdrama.entity.Episode;
+import com.shortdrama.entity.Project;
+import com.shortdrama.service.ChapterService;
+import com.shortdrama.service.EpisodeService;
+import com.shortdrama.service.ProjectService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping(&quot;/api/projects/{projectId}/episodes&quot;)
+<span class="fc" id="L25">@RequiredArgsConstructor</span>
+public class EpisodeController {
+
+    private final EpisodeService episodeService;
+    private final ProjectService projectService;
+    private final ChapterService chapterService;
+
+    @PostMapping
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; create(
+            @PathVariable UUID projectId,
+            @Valid @RequestBody CreateEpisodeRequest request) {
+<span class="nc" id="L36">        Project project = projectService.findById(projectId)</span>
+<span class="nc" id="L37">                .orElseThrow(() -&gt; new RuntimeException(&quot;Project not found&quot;));</span>
+
+<span class="nc" id="L39">        Chapter chapter = null;</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (request.getChapterId() != null) {</span>
+<span class="nc" id="L41">            chapter = chapterService.findById(request.getChapterId())</span>
+<span class="nc" id="L42">                    .orElseThrow(() -&gt; new RuntimeException(&quot;Chapter not found&quot;));</span>
+        }
+
+<span class="nc" id="L45">        Episode episode = Episode.builder()</span>
+<span class="nc" id="L46">                .project(project)</span>
+<span class="nc" id="L47">                .chapter(chapter)</span>
+<span class="nc" id="L48">                .episodeNumber(request.getEpisodeNumber())</span>
+<span class="nc" id="L49">                .title(request.getTitle())</span>
+<span class="nc" id="L50">                .description(request.getDescription())</span>
+<span class="nc" id="L51">                .scriptContent(request.getScriptContent())</span>
+<span class="nc" id="L52">                .duration(request.getDuration())</span>
+<span class="nc" id="L53">                .wordCount(request.getWordCount())</span>
+<span class="nc" id="L54">                .status(Episode.EpisodeStatus.PENDING)</span>
+<span class="nc" id="L55">                .build();</span>
+
+<span class="nc" id="L57">        Episode created = episodeService.createEpisode(episode);</span>
+<span class="nc" id="L58">        return ResponseEntity.ok(ApiResponse.success(&quot;Episode created&quot;, created));</span>
+    }
+
+    @GetMapping
+    public ResponseEntity&lt;ApiResponse&lt;List&lt;Episode&gt;&gt;&gt; getByProjectId(@PathVariable UUID projectId) {
+<span class="nc" id="L63">        List&lt;Episode&gt; episodes = episodeService.findByProjectId(projectId);</span>
+<span class="nc" id="L64">        return ResponseEntity.ok(ApiResponse.success(episodes));</span>
+    }
+
+    @GetMapping(&quot;/paged&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Page&lt;Episode&gt;&gt;&gt; getByProjectIdPaged(
+            @PathVariable UUID projectId,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+<span class="nc" id="L72">        Pageable pageable = PageRequest.of(page, size, Sort.by(&quot;episodeNumber&quot;).ascending());</span>
+<span class="nc" id="L73">        Page&lt;Episode&gt; episodes = episodeService.findByProjectId(projectId, pageable);</span>
+<span class="nc" id="L74">        return ResponseEntity.ok(ApiResponse.success(episodes));</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; getById(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id) {
+<span class="nc" id="L81">        Episode episode = episodeService.findById(id)</span>
+<span class="nc" id="L82">                .orElseThrow(() -&gt; new RuntimeException(&quot;Episode not found&quot;));</span>
+<span class="nc" id="L83">        return ResponseEntity.ok(ApiResponse.success(episode));</span>
+    }
+
+    @GetMapping(&quot;/number/{number}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; getByNumber(
+            @PathVariable UUID projectId,
+            @PathVariable Integer number) {
+<span class="nc" id="L90">        Episode episode = episodeService.findByProjectIdAndEpisodeNumber(projectId, number)</span>
+<span class="nc" id="L91">                .orElseThrow(() -&gt; new RuntimeException(&quot;Episode not found&quot;));</span>
+<span class="nc" id="L92">        return ResponseEntity.ok(ApiResponse.success(episode));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; update(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateEpisodeRequest request) {
+<span class="nc" id="L100">        Chapter chapter = null;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (request.getChapterId() != null) {</span>
+<span class="nc" id="L102">            chapter = chapterService.findById(request.getChapterId())</span>
+<span class="nc" id="L103">                    .orElseThrow(() -&gt; new RuntimeException(&quot;Chapter not found&quot;));</span>
+        }
+
+<span class="nc" id="L106">        Episode episode = Episode.builder()</span>
+<span class="nc" id="L107">                .chapter(chapter)</span>
+<span class="nc" id="L108">                .episodeNumber(request.getEpisodeNumber())</span>
+<span class="nc" id="L109">                .title(request.getTitle())</span>
+<span class="nc" id="L110">                .description(request.getDescription())</span>
+<span class="nc" id="L111">                .scriptContent(request.getScriptContent())</span>
+<span class="nc" id="L112">                .duration(request.getDuration())</span>
+<span class="nc" id="L113">                .wordCount(request.getWordCount())</span>
+<span class="nc" id="L114">                .build();</span>
+
+<span class="nc" id="L116">        Episode updated = episodeService.updateEpisode(id, episode);</span>
+<span class="nc" id="L117">        return ResponseEntity.ok(ApiResponse.success(&quot;Episode updated&quot;, updated));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; delete(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id) {
+<span class="nc" id="L124">        episodeService.deleteEpisode(id);</span>
+<span class="nc" id="L125">        return ResponseEntity.ok(ApiResponse.success(&quot;Episode deleted&quot;, null));</span>
+    }
+
+    @GetMapping(&quot;/status/{status}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;List&lt;Episode&gt;&gt;&gt; getByStatus(
+            @PathVariable UUID projectId,
+            @PathVariable Episode.EpisodeStatus status) {
+<span class="nc" id="L132">        List&lt;Episode&gt; episodes = episodeService.findByProjectIdAndStatus(projectId, status);</span>
+<span class="nc" id="L133">        return ResponseEntity.ok(ApiResponse.success(episodes));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/status&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; updateStatus(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id,
+            @RequestParam Episode.EpisodeStatus status) {
+<span class="nc" id="L141">        Episode updated = episodeService.updateStatus(id, status);</span>
+<span class="nc" id="L142">        return ResponseEntity.ok(ApiResponse.success(&quot;Status updated&quot;, updated));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/video&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; updateVideoUrl(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id,
+            @RequestParam String videoUrl) {
+<span class="nc" id="L150">        Episode updated = episodeService.updateVideoUrl(id, videoUrl);</span>
+<span class="nc" id="L151">        return ResponseEntity.ok(ApiResponse.success(&quot;Video URL updated&quot;, updated));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/audio&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Episode&gt;&gt; updateAudioUrl(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id,
+            @RequestParam String audioUrl) {
+<span class="nc" id="L159">        Episode updated = episodeService.updateAudioUrl(id, audioUrl);</span>
+<span class="nc" id="L160">        return ResponseEntity.ok(ApiResponse.success(&quot;Audio URL updated&quot;, updated));</span>
+    }
+
+    @GetMapping(&quot;/count&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Long&gt;&gt; count(@PathVariable UUID projectId) {
+<span class="nc" id="L165">        long count = episodeService.countByProjectId(projectId);</span>
+<span class="nc" id="L166">        return ResponseEntity.ok(ApiResponse.success(count));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

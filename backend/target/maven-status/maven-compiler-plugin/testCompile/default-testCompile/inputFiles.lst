@@ -1,0 +1,13 @@
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/ApplicationTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/ChapterRepositoryTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/CharacterRepositoryTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/EpisodeRepositoryTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/NovelRepositoryTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/ProjectRepositoryTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/repository/UserRepositoryTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/service/ChapterServiceTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/service/CharacterServiceTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/service/EpisodeServiceTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/service/NovelServiceTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/service/ProjectServiceTest.java
+/Users/hujiayi/Documents/short-drama-generator/backend/src/test/java/com/shortdrama/service/UserServiceTest.java

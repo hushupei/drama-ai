@@ -13,7 +13,7 @@
 | Task 1: 项目初始化 | ✅ 已完成 | task-001-project-init | 2h | 0.5h | 0h | 0 | 2026-04-22 |
 | Task 2: 数据库实体 | ✅ 已完成 | task-002-database-layer | 13h | 1h | - | 3 | 2026-04-23 |
 | Task 3: Service层 | ✅ 已完成 | task-003-service-layer | 10h | 2h | 1h | 2 | 2026-04-24 |
-| Task 4: REST API | ⏳ 待开始 | - | - | - | - | - | - |
+| Task 4: REST API | 🧪 测试中 | task-004-rest-api | 2h | - | - | 0 | - |
 | Task 5: Python AI架构 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 6: 小说解析服务 | ⏳ 待开始 | - | - | - | - | - | - |
 | Task 7: 前端架构 | ⏳ 待开始 | - | - | - | - | - | - |
@@ -246,24 +246,28 @@
 ## Task 4: REST API 控制器层
 
 **分支**: `task-004-rest-api`  
-**状态**: ⏳ 待开始  
-**负责人**: -  
+**状态**: 🧪 测试中  
+**负责人**: Claude
 
 ### 交付物
-- [ ] JWT 安全组件
-- [ ] AuthController
-- [ ] NovelController
-- [ ] ChapterController
-- [ ] CharacterController
-- [ ] ProjectController
-- [ ] EpisodeController
-- [ ] API 文档（Swagger）
+- [x] JWT 安全组件
+  - JwtTokenProvider: JWT token 生成与验证
+  - JwtAuthenticationFilter: 请求过滤器
+  - SecurityConfig: Spring Security 配置
+  - CustomUserDetailsService: 用户认证服务
+- [x] AuthController: 登录/注册 API
+- [x] NovelController: 小说 CRUD API
+- [x] ChapterController: 章节 CRUD API
+- [x] CharacterController: 角色 CRUD API
+- [x] ProjectController: 项目 CRUD API
+- [x] EpisodeController: 剧集 CRUD API
+- [x] API 文档（Swagger）: OpenAPI 3.0 配置
 
 ### 时间统计
 
 | 阶段 | 开始时间 | 结束时间 | 总时长 | 失败次数 |
 |------|----------|----------|--------|----------|
-| 开发 | - | - | - | - |
+| 开发 | 2026-04-25 10:20 | 2026-04-25 10:52 | 2h | 0 |
 | 测试 | - | - | - | - |
 | 集成 | - | - | - | - |
 

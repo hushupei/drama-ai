@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="005-create-projects-table" author="shortdrama">
+        <createTable tableName="projects">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="novel_id" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="DRAFT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(20)" defaultValue="SINGLE_EPISODE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_episode_count" type="INT"/>
+            <column name="target_duration" type="INT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="projects" baseColumnNames="user_id"
+                                 constraintName="fk_projects_user"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="projects" baseColumnNames="novel_id"
+                                 constraintName="fk_projects_novel"
+                                 referencedTableName="novels"
+                                 referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_projects_user_id" tableName="projects">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_projects_novel_id" tableName="projects">
+            <column name="novel_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_projects_status" tableName="projects">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NovelController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Short Drama Generator</a> &gt; <a href="index.source.html" class="el_package">com.shortdrama.controller</a> &gt; <span class="el_source">NovelController.java</span></div><h1>NovelController.java</h1><pre class="source lang-java linenums">package com.shortdrama.controller;
+
+import com.shortdrama.dto.request.CreateNovelRequest;
+import com.shortdrama.dto.request.UpdateNovelRequest;
+import com.shortdrama.dto.response.ApiResponse;
+import com.shortdrama.entity.Novel;
+import com.shortdrama.entity.User;
+import com.shortdrama.service.NovelService;
+import com.shortdrama.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping(&quot;/api/novels&quot;)
+<span class="fc" id="L24">@RequiredArgsConstructor</span>
+public class NovelController {
+
+    private final NovelService novelService;
+    private final UserService userService;
+
+    @PostMapping
+    public ResponseEntity&lt;ApiResponse&lt;Novel&gt;&gt; create(
+            @Valid @RequestBody CreateNovelRequest request,
+            Authentication authentication) {
+<span class="nc" id="L34">        UUID userId = (UUID) authentication.getCredentials();</span>
+<span class="nc" id="L35">        User user = userService.findById(userId)</span>
+<span class="nc" id="L36">                .orElseThrow(() -&gt; new RuntimeException(&quot;User not found&quot;));</span>
+
+<span class="nc" id="L38">        Novel novel = Novel.builder()</span>
+<span class="nc" id="L39">                .title(request.getTitle())</span>
+<span class="nc" id="L40">                .description(request.getDescription())</span>
+<span class="nc" id="L41">                .author(request.getAuthor())</span>
+<span class="nc" id="L42">                .user(user)</span>
+<span class="nc" id="L43">                .status(Novel.NovelStatus.UPLOADED)</span>
+<span class="nc" id="L44">                .build();</span>
+
+<span class="nc" id="L46">        Novel created = novelService.createNovel(novel);</span>
+<span class="nc" id="L47">        return ResponseEntity.ok(ApiResponse.success(&quot;Novel created&quot;, created));</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Novel&gt;&gt; getById(@PathVariable UUID id) {
+<span class="nc" id="L52">        Novel novel = novelService.findById(id)</span>
+<span class="nc" id="L53">                .orElseThrow(() -&gt; new RuntimeException(&quot;Novel not found&quot;));</span>
+<span class="nc" id="L54">        return ResponseEntity.ok(ApiResponse.success(novel));</span>
+    }
+
+    @GetMapping
+    public ResponseEntity&lt;ApiResponse&lt;Page&lt;Novel&gt;&gt;&gt; getMyNovels(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size,
+            @RequestParam(defaultValue = &quot;createdAt,desc&quot;) String sort,
+            Authentication authentication) {
+<span class="nc" id="L63">        UUID userId = (UUID) authentication.getCredentials();</span>
+<span class="nc" id="L64">        String[] sortParams = sort.split(&quot;,&quot;);</span>
+<span class="nc" id="L65">        Sort sortObj = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);</span>
+<span class="nc" id="L66">        Pageable pageable = PageRequest.of(page, size, sortObj);</span>
+
+<span class="nc" id="L68">        Page&lt;Novel&gt; novels = novelService.findByUserId(userId, pageable);</span>
+<span class="nc" id="L69">        return ResponseEntity.ok(ApiResponse.success(novels));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Novel&gt;&gt; update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateNovelRequest request) {
+<span class="nc" id="L76">        Novel novel = Novel.builder()</span>
+<span class="nc" id="L77">                .title(request.getTitle())</span>
+<span class="nc" id="L78">                .description(request.getDescription())</span>
+<span class="nc" id="L79">                .author(request.getAuthor())</span>
+<span class="nc" id="L80">                .build();</span>
+
+<span class="nc" id="L82">        Novel updated = novelService.updateNovel(id, novel);</span>
+<span class="nc" id="L83">        return ResponseEntity.ok(ApiResponse.success(&quot;Novel updated&quot;, updated));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; delete(@PathVariable UUID id) {
+<span class="nc" id="L88">        novelService.deleteNovel(id);</span>
+<span class="nc" id="L89">        return ResponseEntity.ok(ApiResponse.success(&quot;Novel deleted&quot;, null));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/status&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Novel&gt;&gt; updateStatus(
+            @PathVariable UUID id,
+            @RequestParam Novel.NovelStatus status) {
+<span class="nc" id="L96">        Novel updated = novelService.updateStatus(id, status);</span>
+<span class="nc" id="L97">        return ResponseEntity.ok(ApiResponse.success(&quot;Status updated&quot;, updated));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

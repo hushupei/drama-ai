@@ -1,0 +1,13 @@
+com/shortdrama/service/ChapterServiceTest.class
+com/shortdrama/repository/NovelRepositoryTest.class
+com/shortdrama/service/EpisodeServiceTest.class
+com/shortdrama/service/NovelServiceTest.class
+com/shortdrama/service/ProjectServiceTest.class
+com/shortdrama/repository/EpisodeRepositoryTest.class
+com/shortdrama/repository/ProjectRepositoryTest.class
+com/shortdrama/repository/ChapterRepositoryTest.class
+com/shortdrama/service/UserServiceTest.class
+com/shortdrama/repository/UserRepositoryTest.class
+com/shortdrama/ApplicationTest.class
+com/shortdrama/service/CharacterServiceTest.class
+com/shortdrama/repository/CharacterRepositoryTest.class
