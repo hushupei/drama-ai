@@ -18,7 +18,7 @@
 | Task 6: 小说解析服务 | ✅ 已完成 | task-006-novel-parser | 1h | - | - | 0 | 2026-04-26 |
 | Task 7: 前端架构 | ✅ 已完成 | task-007-frontend-arch | 1h | - | - | 0 | 2026-04-26 |
 | Task 8: 前端页面 | ✅ 已完成 | task-008-frontend-pages | 2h | - | - | 0 | - |
-| Task 9: 集成测试 | 🔄 开发中 | task-009-integration-test | - | - | - | - | - |
+| Task 9: 集成测试 | ✅ 已完成 | task-009-integration-test | 1h | - | - | 0 | 2026-04-26 |
 
 **图例**:
 - ⏳ 待开始
