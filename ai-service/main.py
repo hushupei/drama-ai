@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.api.routes import health, tasks
 
 
 @asynccontextmanager
@@ -28,6 +29,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register routers
+app.include_router(health.router, tags=["health"])
+app.include_router(tasks.router, prefix="/api/v1", tags=["tasks"])
 
 
 @app.get("/health")
