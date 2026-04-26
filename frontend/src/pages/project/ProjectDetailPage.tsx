@@ -2,7 +2,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Descriptions, Button, Spin, Tabs, Table } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useProject, useEpisodes } from '@/hooks'
-import type { Episode } from '@/types'
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()

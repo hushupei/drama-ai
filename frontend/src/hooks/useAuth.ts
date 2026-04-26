@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { authApi } from '@/api'
 import { useAuthStore } from '@/stores'
-import type { LoginRequest, RegisterRequest } from '@/types'
 
 export function useLogin() {
   const { setAuth } = useAuthStore()

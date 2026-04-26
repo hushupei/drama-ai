@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { Table, Button, Space, Popconfirm, Upload, message } from 'antd'
-import { PlusOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons'
+import { DeleteOutlined, UploadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useNovels, useDeleteNovel, useCreateNovel } from '@/hooks'
 import type { Novel } from '@/types'

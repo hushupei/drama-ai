@@ -7,6 +7,9 @@ import NovelListPage from '@/pages/novel/NovelListPage'
 import NovelDetailPage from '@/pages/novel/NovelDetailPage'
 import ProjectListPage from '@/pages/project/ProjectListPage'
 import ProjectDetailPage from '@/pages/project/ProjectDetailPage'
+import CharacterManagePage from '@/pages/character/CharacterManagePage'
+import EpisodeGeneratePage from '@/pages/episode/EpisodeGeneratePage'
+import VideoPreviewPage from '@/pages/episode/VideoPreviewPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -48,8 +51,11 @@ export default function AppRouter() {
         <Route index element={<Navigate to="/novels" />} />
         <Route path="novels" element={<NovelListPage />} />
         <Route path="novels/:id" element={<NovelDetailPage />} />
+        <Route path="novels/:novelId/characters" element={<CharacterManagePage />} />
         <Route path="projects" element={<ProjectListPage />} />
         <Route path="projects/:id" element={<ProjectDetailPage />} />
+        <Route path="projects/:projectId/episodes/:episodeId/generate" element={<EpisodeGeneratePage />} />
+        <Route path="projects/:projectId/episodes/:episodeId/preview" element={<VideoPreviewPage />} />
       </Route>
     </Routes>
   )

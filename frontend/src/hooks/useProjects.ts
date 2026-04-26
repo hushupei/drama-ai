@@ -44,14 +44,3 @@ export function useDeleteProject() {
     },
   })
 }
-
-export function useEpisodes(projectId: string, params?: PageRequest) {
-  return useQuery({
-    queryKey: ['episodes', projectId, params],
-    queryFn: async () => {
-      const response = await projectApi.getEpisodes(projectId, params)
-      return response.success ? response.data : []
-    },
-    enabled: !!projectId,
-  })
-}
