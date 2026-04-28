@@ -25,7 +25,8 @@ class TaskLogger:
         task_id: str,
         task_name: str,
         args: Optional[tuple] = None,
-        kwargs: Optional[dict] = None
+        kwargs: Optional[dict] = None,
+        context: Optional[dict] = None,
     ) -> None:
         """Log task start"""
         record = {
@@ -35,6 +36,7 @@ class TaskLogger:
             "started_at": datetime.now().isoformat(),
             "args": str(args) if args else None,
             "kwargs": str(kwargs) if kwargs else None,
+            "context": context or {},
             "result": None,
             "error": None,
         }
@@ -139,6 +141,19 @@ class TaskLogger:
             return str(result)[:1000]  # 限制长度
         except:
             return "<unable to serialize>"
+
+    def get_task_by_id(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Find a task record by its task_id across all lists."""
+        all_key = self._get_key()
+        records = self.redis_client.lrange(all_key, 0, -1)
+        for record_data in records:
+            try:
+                record = json.loads(record_data)
+                if record.get("task_id") == task_id:
+                    return record
+            except json.JSONDecodeError:
+                continue
+        return None
 
     def get_task_history(
         self,

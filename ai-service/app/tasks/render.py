@@ -33,7 +33,11 @@ def render_video_task(
     task_name = "render_video"
     start_time = time.time()
 
-    task_logger.log_task_start(task_id, task_name)
+    task_logger.log_task_start(task_id, task_name, context={
+        "script_id": script_id,
+        "episode_id": episode_id,
+        "project_id": project_id,
+    })
 
     try:
         logger.info(f"Starting video rendering: episode={episode_id}, resolution={resolution}")

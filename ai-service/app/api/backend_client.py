@@ -84,6 +84,20 @@ class BackendClient:
             logger.error(f"Error updating novel status: {e}")
             return False
 
+    def get_novel(self, novel_id: str) -> Optional[Dict]:
+        """Get novel info from backend"""
+        try:
+            with self._get_sync_client() as client:
+                response = client.get(f"{self.base_url}/api/novels/{novel_id}")
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("data") if data.get("success") else None
+                logger.error(f"Failed to get novel: {response.status_code}")
+                return None
+        except Exception as e:
+            logger.error(f"Error getting novel: {e}")
+            return None
+
     def get_chapter(self, novel_id: str, chapter_id: str) -> Optional[Dict]:
         """Get chapter content from backend"""
         try:

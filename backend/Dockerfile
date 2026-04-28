@@ -3,10 +3,11 @@ FROM maven:3.9-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 COPY pom.xml .
+COPY settings-docker.xml .
 COPY src ./src
 
-# Build the application (skip tests entirely)
-RUN mvn clean package -DskipTests -Dmaven.test.skip=true
+# Build the application (skip tests entirely, use Aliyun mirror)
+RUN mvn clean package -DskipTests -Dmaven.test.skip=true -s settings-docker.xml
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

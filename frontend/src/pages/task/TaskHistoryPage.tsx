@@ -26,18 +26,57 @@ interface TaskStats {
   by_task: Record<string, { total: number; success: number; failure: number }>
 }
 
+const TYPE_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+  parse_novel: { label: '解析小说', color: 'blue', icon: '📖' },
+  generate_script: { label: '生成剧本', color: 'purple', icon: '📝' },
+  render_video: { label: '渲染视频', color: 'cyan', icon: '🎬' },
+  sync_novel_parsing_status: { label: '同步解析状态', color: 'green', icon: '🔄' },
+  generate_statistics_report: { label: '统计报告', color: 'orange', icon: '📊' },
+  cleanup_old_logs: { label: '清理日志', color: 'default', icon: '🧹' },
+}
+
+function formatDuration(ms: number | undefined): string {
+  if (!ms) return '-'
+  if (ms < 1000) return `${ms}ms`
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+  const mins = Math.floor(ms / 60000)
+  const secs = Math.floor((ms % 60000) / 1000)
+  return `${mins}m ${secs}s`
+}
+
+function classifyError(error: string): string {
+  if (!error) return error
+  if (error.includes('NoSuchKey') || error.includes('does not exist')) {
+    return '文件不存在，可能已被删除'
+  }
+  if (error.includes("codec can't decode") || error.toLowerCase().includes('encoding')) {
+    return '文件编码不支持，请上传 UTF-8 编码的文件'
+  }
+  if (error.includes('LLM') || error.includes('OpenAI') || error.toLowerCase().includes('model')) {
+    return 'AI 服务异常，请稍后重试'
+  }
+  if (error.toLowerCase().includes('timeout')) {
+    return '任务执行超时'
+  }
+  if (error.toLowerCase().includes('connection refused')) {
+    return '服务连接失败，请检查服务状态'
+  }
+  return error
+}
+
 export default function TaskHistoryPage() {
   const [history, setHistory] = useState<TaskHistoryItem[]>([])
   const [running, setRunning] = useState<TaskHistoryItem[]>([])
   const [stats, setStats] = useState<TaskStats | null>(null)
   const [loading, setLoading] = useState(false)
-  const [filter, setFilter] = useState<string>('all')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const fetchData = async () => {
     setLoading(true)
     try {
       const [historyRes, runningRes, statsRes] = await Promise.all([
-        taskApi.getTaskHistory(filter === 'all' ? undefined : filter),
+        taskApi.getTaskHistory(typeFilter === 'all' ? undefined : typeFilter),
         taskApi.getRunningTasks(),
         taskApi.getTaskStats(),
       ])
@@ -55,11 +94,11 @@ export default function TaskHistoryPage() {
     fetchData()
     const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
-  }, [filter])
+  }, [typeFilter])
 
   const handleClearHistory = async () => {
     try {
-      await taskApi.clearTaskHistory(filter === 'all' ? undefined : filter)
+      await taskApi.clearTaskHistory(typeFilter === 'all' ? undefined : typeFilter)
       fetchData()
     } catch (error) {
       console.error('Failed to clear history:', error)
@@ -79,51 +118,62 @@ export default function TaskHistoryPage() {
     }
   }
 
-  const getTaskNameLabel = (name: string) => {
-    const labels: Record<string, string> = {
-      'sync_novel_parsing_status': '同步小说解析状态',
-      'generate_statistics_report': '生成统计报告',
-      'cleanup_old_logs': '清理旧日志',
-      'parse_novel': '解析小说',
-      'generate_script': '生成剧本',
-      'render_video': '渲染视频',
-    }
-    return labels[name] || name
+  const getTypePrefix = (name: string) => {
+    const config = TYPE_CONFIG[name]
+    return config ? config.label : name
   }
+
+  const getTypeColor = (name: string) => {
+    const config = TYPE_CONFIG[name]
+    return config ? config.color : 'default'
+  }
+
+  const getTypeIcon = (name: string) => {
+    const config = TYPE_CONFIG[name]
+    return config ? config.icon : '📌'
+  }
+
+  const filteredHistory = statusFilter === 'all'
+    ? history
+    : history.filter(item => item.status === statusFilter)
 
   const columns = [
     {
-      title: '任务ID',
+      title: '任务标识',
       dataIndex: 'task_id',
       key: 'task_id',
       width: 220,
-      render: (id: string) => <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{id}</span>,
-    },
-    {
-      title: '任务名称',
-      dataIndex: 'task_name',
-      key: 'task_name',
-      render: (name: string) => getTaskNameLabel(name),
+      render: (id: string, record: TaskHistoryItem) => (
+        <Space size={4}>
+          <Tag color={getTypeColor(record.task_name)} style={{ fontSize: 11 }}>
+            {getTypeIcon(record.task_name)} {getTypePrefix(record.task_name)}
+          </Tag>
+          <Text code style={{ fontSize: 11 }}>{id ? id.slice(0, 8) : ''}...</Text>
+        </Space>
+      ),
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 90,
       render: (status: string) => getStatusTag(status),
     },
     {
       title: '开始时间',
       dataIndex: 'started_at',
       key: 'started_at',
-      width: 180,
-      render: (time: string) => new Date(time).toLocaleString(),
+      width: 170,
+      sorter: (a: TaskHistoryItem, b: TaskHistoryItem) =>
+        new Date(a.started_at).getTime() - new Date(b.started_at).getTime(),
+      defaultSortOrder: 'descend' as const,
+      render: (time: string) => time ? new Date(time).toLocaleString() : '-',
     },
     {
       title: '完成时间',
       dataIndex: 'completed_at',
       key: 'completed_at',
-      width: 180,
+      width: 170,
       render: (time: string) => time ? new Date(time).toLocaleString() : '-',
     },
     {
@@ -131,11 +181,14 @@ export default function TaskHistoryPage() {
       dataIndex: 'duration_ms',
       key: 'duration_ms',
       width: 100,
-      render: (ms: number) => ms ? `${ms}ms` : '-',
+      sorter: (a: TaskHistoryItem, b: TaskHistoryItem) =>
+        (a.duration_ms || 0) - (b.duration_ms || 0),
+      render: (ms: number) => formatDuration(ms),
     },
     {
-      title: '结果/错误',
+      title: '结果',
       key: 'result',
+      ellipsis: true,
       render: (_: any, record: TaskHistoryItem) => {
         if (record.error) {
           return (
@@ -144,17 +197,22 @@ export default function TaskHistoryPage() {
               style={{ fontSize: 12, marginBottom: 0 }}
               ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
             >
-              {record.error}
+              {classifyError(record.error)}
             </Paragraph>
           )
         }
         if (record.result && typeof record.result === 'object') {
+          const summary = record.result.total_chapters
+            ? `解析完成: ${record.result.total_chapters} 章, ${(record.result.total_word_count || 0).toLocaleString()} 字`
+            : record.result.title
+              ? `剧本: ${record.result.title}`
+              : JSON.stringify(record.result)
           return (
             <Paragraph
               style={{ fontSize: 12, marginBottom: 0 }}
               ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
             >
-              {JSON.stringify(record.result)}
+              {summary}
             </Paragraph>
           )
         }
@@ -165,7 +223,7 @@ export default function TaskHistoryPage() {
 
   return (
     <div>
-      <h2>定时任务执行记录</h2>
+      <h2>任务执行记录</h2>
 
       {stats && (
         <Row gutter={16} style={{ marginBottom: 24 }}>
@@ -216,8 +274,8 @@ export default function TaskHistoryPage() {
               <div key={task.task_id} style={{ padding: 8, background: '#f6ffed', borderRadius: 4 }}>
                 <Space>
                   <Badge status="processing" />
-                  <strong>{getTaskNameLabel(task.task_name)}</strong>
-                  <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{task.task_id}</span>
+                  <Tag color={getTypeColor(task.task_name)}>{getTypePrefix(task.task_name)}</Tag>
+                  <Text code style={{ fontSize: 11 }}>{task.task_id ? task.task_id.slice(0, 8) : ''}...</Text>
                   <span>开始于: {new Date(task.started_at).toLocaleString()}</span>
                 </Space>
               </div>
@@ -229,17 +287,28 @@ export default function TaskHistoryPage() {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <Space>
           <Select
-            value={filter}
-            onChange={setFilter}
-            style={{ width: 200 }}
+            value={typeFilter}
+            onChange={setTypeFilter}
+            style={{ width: 160 }}
             options={[
-              { value: 'all', label: '全部任务' },
-              { value: 'parse_novel', label: '解析小说' },
-              { value: 'generate_script', label: '生成剧本' },
-              { value: 'render_video', label: '渲染视频' },
-              { value: 'sync_novel_parsing_status', label: '同步小说解析状态' },
-              { value: 'generate_statistics_report', label: '生成统计报告' },
-              { value: 'cleanup_old_logs', label: '清理旧日志' },
+              { value: 'all', label: '全部类型' },
+              { value: 'parse_novel', label: '📖 解析小说' },
+              { value: 'generate_script', label: '📝 生成剧本' },
+              { value: 'render_video', label: '🎬 渲染视频' },
+              { value: 'sync_novel_parsing_status', label: '🔄 同步状态' },
+              { value: 'generate_statistics_report', label: '📊 统计报告' },
+              { value: 'cleanup_old_logs', label: '🧹 清理日志' },
+            ]}
+          />
+          <Select
+            value={statusFilter}
+            onChange={setStatusFilter}
+            style={{ width: 140 }}
+            options={[
+              { value: 'all', label: '全部状态' },
+              { value: 'running', label: '运行中' },
+              { value: 'success', label: '成功' },
+              { value: 'failure', label: '失败' },
             ]}
           />
           <Button icon={<ReloadOutlined />} onClick={fetchData} loading={loading}>
@@ -253,10 +322,15 @@ export default function TaskHistoryPage() {
 
       <Table
         columns={columns}
-        dataSource={history}
+        dataSource={filteredHistory}
         rowKey="task_id"
         loading={loading}
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          pageSize: 15,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '15', '30', '50'],
+          showTotal: (total) => `共 ${total} 条`,
+        }}
       />
     </div>
   )

@@ -6,7 +6,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +25,9 @@ public class Project {
     @UuidGenerator
     @Column(updatable = false, nullable = false)
     private UUID id;
+
+    @Column(nullable = false, unique = true, length = 20)
+    private String displayId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -65,6 +70,15 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Episode> episodes = new ArrayList<>();
+
+    @PrePersist
+    void generateDisplayId() {
+        if (this.displayId == null) {
+            String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
+            String randomPart = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+            this.displayId = "PRJ-" + datePart + "-" + randomPart;
+        }
+    }
 
     public enum ProjectStatus {
         DRAFT, IN_PROGRESS, COMPLETED, ARCHIVED

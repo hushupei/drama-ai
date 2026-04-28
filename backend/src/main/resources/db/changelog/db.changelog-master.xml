@@ -11,5 +11,6 @@
     <include file="db/changelog/changes/004-create-characters-table.xml"/>
     <include file="db/changelog/changes/005-create-projects-table.xml"/>
     <include file="db/changelog/changes/006-create-episodes-table.xml"/>
+    <include file="db/changelog/changes/007-add-display-ids.xml"/>
 
 </databaseChangeLog>

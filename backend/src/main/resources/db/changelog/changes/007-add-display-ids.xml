@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="007-add-display-ids" author="v3">
+        <addColumn tableName="novels">
+            <column name="display_id" type="varchar(20)">
+                <constraints unique="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="projects">
+            <column name="display_id" type="varchar(20)">
+                <constraints unique="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="007-backfill-display-ids" author="v3">
+        <sql>
+            UPDATE novels SET display_id = CONCAT('NOV-', DATE_FORMAT(COALESCE(created_at, NOW()), '%y%m%d'), '-', UPPER(SUBSTRING(MD5(CONCAT(id, RAND())), 1, 4)))
+            WHERE display_id IS NULL;
+            UPDATE projects SET display_id = CONCAT('PRJ-', DATE_FORMAT(COALESCE(created_at, NOW()), '%y%m%d'), '-', UPPER(SUBSTRING(MD5(CONCAT(id, RAND())), 1, 4)))
+            WHERE display_id IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="007-display-id-not-null" author="v3">
+        <addNotNullConstraint tableName="novels" columnName="display_id" columnDataType="varchar(20)"/>
+        <addNotNullConstraint tableName="projects" columnName="display_id" columnDataType="varchar(20)"/>
+    </changeSet>
+
+</databaseChangeLog>

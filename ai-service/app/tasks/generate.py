@@ -63,7 +63,12 @@ def generate_script_task(
     task_name = "generate_script"
     start_time = time.time()
 
-    task_logger.log_task_start(task_id, task_name)
+    task_logger.log_task_start(task_id, task_name, context={
+        "novel_id": novel_id,
+        "chapter_id": chapter_id,
+        "episode_id": episode_id,
+        "project_id": project_id,
+    })
 
     try:
         logger.info(f"Starting script generation: chapter={chapter_id}, episode={episode_id}")

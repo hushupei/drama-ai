@@ -56,6 +56,13 @@ class MinioStorage:
         except S3Error as e:
             raise RuntimeError(f"Failed to delete file: {e}")
 
+    def file_exists(self, object_name: str) -> bool:
+        try:
+            self.client.stat_object(self.bucket, object_name)
+            return True
+        except S3Error:
+            return False
+
     def get_presigned_url(self, object_name: str, expires: int = 3600) -> str:
         try:
             return self.client.presigned_get_object(self.bucket, object_name, expires)

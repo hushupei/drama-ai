@@ -44,10 +44,10 @@ export default function NovelDetailPage() {
   }, [])
 
   async function handleParse() {
-    if (!novelId) return
+    if (!novelId || !novel) return
     setParsing(true)
     try {
-      const res = await taskApi.createParseTask({ novel_id: novelId })
+      const res = await taskApi.createParseTask({ novel_id: novelId, storage_path: novel.filePath })
       const taskId = res.task_id || res.data?.task_id
       if (!taskId) {
         message.error('解析任务创建失败')

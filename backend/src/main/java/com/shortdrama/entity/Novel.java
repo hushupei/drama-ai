@@ -9,7 +9,9 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +29,9 @@ public class Novel {
     @UuidGenerator
     @Column(updatable = false, nullable = false)
     private UUID id;
+
+    @Column(nullable = false, unique = true, length = 20)
+    private String displayId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -80,6 +85,15 @@ public class Novel {
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Character> characters = new ArrayList<>();
+
+    @PrePersist
+    void generateDisplayId() {
+        if (this.displayId == null) {
+            String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
+            String randomPart = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+            this.displayId = "NOV-" + datePart + "-" + randomPart;
+        }
+    }
 
     public enum NovelStatus {
         UPLOADED,

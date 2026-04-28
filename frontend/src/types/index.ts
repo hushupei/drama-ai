@@ -9,10 +9,11 @@ export interface User {
 
 export interface Novel {
   id: string
+  displayId: string
   title: string
   author: string
   description: string | null
-  storagePath: string
+  filePath: string
   status: 'UPLOADED' | 'PARSING' | 'PARSED' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
   userId: string
   createdAt: string
@@ -43,6 +44,7 @@ export interface Character {
 
 export interface Project {
   id: string
+  displayId: string
   name: string
   type: 'episode' | 'series'
   status: 'draft' | 'in_progress' | 'completed' | 'archived'

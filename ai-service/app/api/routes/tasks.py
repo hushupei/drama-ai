@@ -5,6 +5,8 @@ from typing import Literal, Optional, List, Any
 from uuid import UUID
 from app.core.celery import celery_app
 from app.core.task_logger import task_logger
+from app.core.minio_client import minio_storage
+from app.api.backend_client import backend_client
 from app.tasks.parse import parse_novel_task
 from app.tasks.generate import generate_script_task
 from app.tasks.render import render_video_task
@@ -52,6 +54,21 @@ class TaskStatusResponse(BaseModel):
 )
 async def create_parse_task(request: ParseNovelRequest):
     """Create a novel parsing task"""
+    # Pre-validation: check file exists in MinIO
+    if not minio_storage.file_exists(request.storage_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"文件不存在: {request.storage_path}",
+        )
+
+    # Pre-validation: check novel is not already parsing
+    novel = backend_client.get_novel(str(request.novel_id))
+    if novel and novel.get("status") == "PARSING":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="该小说正在解析中，请等待完成",
+        )
+
     task = parse_novel_task.delay(str(request.novel_id), request.storage_path)
     return TaskResponse(
         task_id=task.id, status="queued", message="Novel parsing task created"
@@ -176,5 +193,46 @@ async def revoke_task(task_id: str):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Task {task_id} cannot be revoked (status: {task_result.status})",
         )
+
+
+@router.post("/tasks/{task_id}/retry")
+async def retry_task(task_id: str):
+    """Retry a failed task by re-submitting with same arguments"""
+    import ast
+
+    record = task_logger.get_task_by_id(task_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Task not found in history")
+
+    if record.get("status") != "failure":
+        raise HTTPException(status_code=400, detail="Only failed tasks can be retried")
+
+    task_name = record.get("task_name", "")
+    args_str = record.get("args", "")
+
+    try:
+        args = ast.literal_eval(args_str) if args_str else ()
+    except (ValueError, SyntaxError):
+        raise HTTPException(status_code=400, detail="Cannot parse task arguments")
+
+    try:
+        if task_name == "parse_novel":
+            new_task = parse_novel_task.delay(*args)
+        elif task_name == "generate_script":
+            new_task = generate_script_task.delay(*args)
+        elif task_name == "render_video":
+            new_task = render_video_task.delay(*args)
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot retry unknown task type: {task_name}",
+            )
+    except TypeError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Task argument mismatch: {str(e)}",
+        )
+
+    return {"task_id": new_task.id, "message": "Task re-queued", "original_task_id": task_id}
 
 

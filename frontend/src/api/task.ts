@@ -35,7 +35,7 @@ export const taskApi = {
 
   // 创建剧本生成任务
   createGenerateTask: async (data: {
-    script_id: string
+    chapter_id: string
     episode_id: string
     project_id: string
     novel_id: string
@@ -59,7 +59,7 @@ export const taskApi = {
   },
 
   // 创建小说解析任务
-  createParseTask: async (data: { novel_id: string }) => {
+  createParseTask: async (data: { novel_id: string; storage_path: string }) => {
     const response = await aiClient.post('/tasks/parse', data)
     return response.data
   },
