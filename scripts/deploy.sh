@@ -10,6 +10,7 @@ echo "================================"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Check if .env file exists
@@ -22,14 +23,36 @@ fi
 
 # Check Docker and Docker Compose
 echo "🔍 检查 Docker 环境..."
-if ! command -v docker &> /dev/null; then
-    echo -e "${RED}❌ Docker 未安装，请先安装 Docker${NC}"
-    exit 1
-fi
+if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Docker 未安装或不完整${NC}"
+    echo ""
+    echo -e "${BLUE}请选择部署方式:${NC}"
+    echo ""
+    echo "1️⃣  Docker 部署（推荐生产环境）"
+    echo "   - 自动安装 Docker Desktop: ./scripts/install-docker-macos.sh"
+    echo "   - 安装完成后重新运行: ./scripts/deploy.sh"
+    echo ""
+    echo "2️⃣  本地开发部署（无需 Docker）"
+    echo "   - 直接运行: ./scripts/start-local.sh"
+    echo "   - 需要本地安装: Java 17+, Maven, Python 3.11+, Node.js 20+"
+    echo ""
+    # Check if running in non-interactive mode
+    if [ -t 0 ]; then
+        read -p "请选择 (1 或 2): " choice
+    else
+        echo -e "${YELLOW}非交互模式，默认选择本地开发部署${NC}"
+        choice="2"
+    fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}❌ Docker Compose 未安装，请先安装 Docker Compose${NC}"
-    exit 1
+    if [ "$choice" = "2" ]; then
+        echo ""
+        echo -e "${GREEN}🚀 切换到本地开发部署...${NC}"
+        exec ./scripts/start-local.sh
+    else
+        echo ""
+        echo -e "${BLUE}📥 开始安装 Docker Desktop...${NC}"
+        exec ./scripts/install-docker-macos.sh
+    fi
 fi
 
 echo -e "${GREEN}✅ Docker 环境检查通过${NC}"

@@ -7,7 +7,7 @@ export function useNovels(params?: PageRequest) {
     queryKey: ['novels', params],
     queryFn: async () => {
       const response = await novelApi.getNovels(params)
-      return response.success ? response.data : []
+      return response.success && response.data ? response.data.content : []
     },
   })
 }
@@ -29,7 +29,7 @@ export function useCreateNovel() {
   return useMutation({
     mutationFn: novelApi.createNovel,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['novels'] })
+      queryClient.invalidateQueries({ queryKey: ['novels'], exact: false })
     },
   })
 }
@@ -40,7 +40,7 @@ export function useDeleteNovel() {
   return useMutation({
     mutationFn: novelApi.deleteNovel,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['novels'] })
+      queryClient.invalidateQueries({ queryKey: ['novels'], exact: false })
     },
   })
 }

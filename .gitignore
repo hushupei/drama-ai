@@ -65,3 +65,8 @@ backend/target/
 ai-service/__pycache__/
 frontend/dist/
 frontend/node_modules/
+.DS_Store
+*/target/
+*/test-results/
+*/playwright-report/
+backend/src/main/resources/application.yml.bak

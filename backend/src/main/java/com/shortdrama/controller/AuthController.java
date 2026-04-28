@@ -4,6 +4,7 @@ import com.shortdrama.dto.request.LoginRequest;
 import com.shortdrama.dto.request.UserRegistrationRequest;
 import com.shortdrama.dto.response.ApiResponse;
 import com.shortdrama.dto.response.LoginResponse;
+import com.shortdrama.dto.response.UserResponse;
 import com.shortdrama.entity.User;
 import com.shortdrama.exception.ValidationException;
 import com.shortdrama.security.JwtTokenProvider;
@@ -44,9 +45,7 @@ public class AuthController {
 
         LoginResponse response = LoginResponse.builder()
                 .token(token)
-                .userId(user.getId())
-                .username(user.getUsername())
-                .displayName(user.getDisplayName())
+                .user(UserResponse.fromEntity(user))
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));

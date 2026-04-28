@@ -3,9 +3,9 @@ import { test, expect } from '@playwright/test'
 test.describe('小说管理功能', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login')
-    await page.fill('input[name="username"]', 'testuser')
-    await page.fill('input[name="password"]', 'testpass')
-    await page.click('button[type="submit"]')
+    await page.fill('input[placeholder="用户名"]', 'admin')
+    await page.fill('input[placeholder="密码"]', 'admin123')
+    await page.click('button:has-text("登录")')
     await page.waitForURL('/novels')
   })
 
@@ -32,8 +32,8 @@ test.describe('小说管理功能', () => {
 test.describe('角色管理功能', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login')
-    await page.fill('input[name="username"]', 'testuser')
-    await page.fill('input[name="password"]', 'testpass')
+    await page.fill('input[name="username"]', 'admin')
+    await page.fill('input[name="password"]', 'admin123')
     await page.click('button[type="submit"]')
   })
 

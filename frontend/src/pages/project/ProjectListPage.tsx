@@ -9,13 +9,17 @@ export default function ProjectListPage() {
   const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [form] = Form.useForm()
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(10)
 
-  const { data: projects, isLoading } = useProjects()
+  const { data: projectData, isLoading } = useProjects({ page, size })
+  const projects = projectData?.content || []
+  const total = projectData?.total || 0
   const { data: novels } = useNovels()
   const deleteProject = useDeleteProject()
   const createProject = useCreateProject()
 
-  const handleCreate = async (values: { name: string; type: 'episode' | 'series'; novelId: string }) => {
+  const handleCreate = async (values: { name: string; type: string; novelId: string }) => {
     try {
       const result = await createProject.mutateAsync(values)
       if (result.success) {
@@ -37,7 +41,14 @@ export default function ProjectListPage() {
       title: '类型',
       dataIndex: 'type',
       key: 'type',
-      render: (type: string) => type === 'episode' ? '单集' : '系列',
+      render: (type: string) => {
+        const typeMap: Record<string, string> = {
+          'SINGLE_EPISODE': '单集',
+          'MULTI_EPISODE': '多集',
+          'SERIES': '系列'
+        }
+        return typeMap[type] || type
+      },
     },
     {
       title: '状态',
@@ -96,6 +107,20 @@ export default function ProjectListPage() {
         dataSource={projects || []}
         rowKey="id"
         loading={isLoading}
+        pagination={{
+          current: page + 1,
+          pageSize: size,
+          total: total,
+          showSizeChanger: true,
+          showTotal: (total) => `共 ${total} 条`,
+          onChange: (newPage, newSize) => {
+            setPage(newPage - 1)
+            if (newSize !== size) {
+              setSize(newSize)
+              setPage(0)
+            }
+          },
+        }}
       />
 
       <Modal
@@ -124,8 +149,8 @@ export default function ProjectListPage() {
             rules={[{ required: true, message: '请选择项目类型' }]}
           >
             <Select placeholder="选择项目类型">
-              <Select.Option value="episode">单集</Select.Option>
-              <Select.Option value="series">系列</Select.Option>
+              <Select.Option value="SINGLE_EPISODE">单集</Select.Option>
+              <Select.Option value="SERIES">系列</Select.Option>
             </Select>
           </Form.Item>
 

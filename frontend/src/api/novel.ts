@@ -1,8 +1,8 @@
 import apiClient from './client'
-import type { Novel, ApiResponse, PageRequest } from '@/types'
+import type { Novel, ApiResponse, PageRequest, Page } from '@/types'
 
 export const novelApi = {
-  getNovels: async (params?: PageRequest): Promise<ApiResponse<Novel[]>> => {
+  getNovels: async (params?: PageRequest): Promise<ApiResponse<Page<Novel>>> => {
     const response = await apiClient.get('/novels', { params })
     return response.data
   },

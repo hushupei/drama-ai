@@ -10,6 +10,7 @@ import ProjectDetailPage from '@/pages/project/ProjectDetailPage'
 import CharacterManagePage from '@/pages/character/CharacterManagePage'
 import EpisodeGeneratePage from '@/pages/episode/EpisodeGeneratePage'
 import VideoPreviewPage from '@/pages/episode/VideoPreviewPage'
+import TaskHistoryPage from '@/pages/task/TaskHistoryPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -56,6 +57,7 @@ export default function AppRouter() {
         <Route path="projects/:id" element={<ProjectDetailPage />} />
         <Route path="projects/:projectId/episodes/:episodeId/generate" element={<EpisodeGeneratePage />} />
         <Route path="projects/:projectId/episodes/:episodeId/preview" element={<VideoPreviewPage />} />
+        <Route path="tasks/history" element={<TaskHistoryPage />} />
       </Route>
     </Routes>
   )

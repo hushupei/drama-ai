@@ -1,8 +1,8 @@
 import apiClient from './client'
-import type { Project, Episode, ApiResponse, PageRequest } from '@/types'
+import type { Project, Episode, ApiResponse, PageRequest, Page } from '@/types'
 
 export const projectApi = {
-  getProjects: async (params?: PageRequest): Promise<ApiResponse<Project[]>> => {
+  getProjects: async (params?: PageRequest): Promise<ApiResponse<Page<Project>>> => {
     const response = await apiClient.get('/projects', { params })
     return response.data
   },
@@ -14,7 +14,7 @@ export const projectApi = {
 
   createProject: async (data: {
     name: string
-    type: 'episode' | 'series'
+    type: string
     novelId: string
   }): Promise<ApiResponse<Project>> => {
     const response = await apiClient.post('/projects', data)

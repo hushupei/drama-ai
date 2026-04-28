@@ -1,7 +1,9 @@
 package com.shortdrama.service.impl;
 
+import com.shortdrama.entity.Episode;
 import com.shortdrama.entity.Project;
 import com.shortdrama.exception.ResourceNotFoundException;
+import com.shortdrama.repository.EpisodeRepository;
 import com.shortdrama.repository.ProjectRepository;
 import com.shortdrama.service.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final EpisodeRepository episodeRepository;
 
     @Override
     @Transactional
@@ -43,10 +46,14 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void deleteProject(UUID id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Project", id.toString());
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", id.toString()));
+        // 先删除关联的episodes避免外键约束错误
+        List<Episode> episodes = episodeRepository.findByProjectIdOrderByEpisodeNumberAsc(id);
+        if (!episodes.isEmpty()) {
+            episodeRepository.deleteAll(episodes);
         }
-        projectRepository.deleteById(id);
+        projectRepository.delete(project);
     }
 
     @Override

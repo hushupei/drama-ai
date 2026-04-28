@@ -1,9 +1,10 @@
 """Task Management API Routes"""
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
-from typing import Literal, Optional
+from typing import Literal, Optional, List, Any
 from uuid import UUID
 from app.core.celery import celery_app
+from app.core.task_logger import task_logger
 from app.tasks.parse import parse_novel_task
 from app.tasks.generate import generate_script_task
 from app.tasks.render import render_video_task
@@ -84,6 +85,60 @@ async def create_render_task(request: RenderVideoRequest):
     )
 
 
+# Task execution history endpoints
+class TaskHistoryItem(BaseModel):
+    task_id: str
+    task_name: str
+    status: str
+    started_at: str
+    completed_at: Optional[str] = None
+    args: Optional[str] = None
+    kwargs: Optional[str] = None
+    result: Optional[Any] = None
+    error: Optional[str] = None
+    duration_ms: Optional[int] = None
+
+
+class TaskStatsResponse(BaseModel):
+    total: int
+    success: int
+    failure: int
+    running: int
+    by_task: dict
+
+
+@router.get("/tasks/history", response_model=List[TaskHistoryItem])
+async def get_task_history(
+    task_name: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """Get task execution history"""
+    history = task_logger.get_task_history(task_name, limit, offset)
+    return history
+
+
+@router.get("/tasks/running", response_model=List[TaskHistoryItem])
+async def get_running_tasks():
+    """Get currently running tasks"""
+    running = task_logger.get_running_tasks()
+    return running
+
+
+@router.get("/tasks/stats", response_model=TaskStatsResponse)
+async def get_task_stats():
+    """Get task execution statistics"""
+    stats = task_logger.get_task_stats()
+    return stats
+
+
+@router.delete("/tasks/history/clear")
+async def clear_task_history(task_name: Optional[str] = None):
+    """Clear task history"""
+    task_logger.clear_history(task_name)
+    return {"message": f"Task history cleared for {task_name or 'all tasks'}"}
+
+
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(task_id: str):
     """Get task status and result"""
@@ -113,3 +168,5 @@ async def revoke_task(task_id: str):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Task {task_id} cannot be revoked (status: {task_result.status})",
         )
+
+

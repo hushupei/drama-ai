@@ -6,6 +6,7 @@ import com.shortdrama.dto.response.ApiResponse;
 import com.shortdrama.entity.Novel;
 import com.shortdrama.entity.User;
 import com.shortdrama.service.NovelService;
+import com.shortdrama.service.StorageService;
 import com.shortdrama.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -26,19 +32,35 @@ public class NovelController {
 
     private final NovelService novelService;
     private final UserService userService;
+    private final StorageService storageService;
 
-    @PostMapping
+    @Value("${minio.bucket:novels}")
+    private String bucketName;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Novel>> create(
-            @Valid @RequestBody CreateNovelRequest request,
-            Authentication authentication) {
+            @RequestParam("title") String title,
+            @RequestParam(value = "author", required = false) String author,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) throws IOException {
         UUID userId = (UUID) authentication.getCredentials();
         User user = userService.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Validate file
+        validateFile(file);
+
+        // Upload file to MinIO
+        String sanitizedFileName = sanitizeFileName(file.getOriginalFilename());
+        String objectName = UUID.randomUUID() + "-" + sanitizedFileName;
+        storageService.uploadFile(bucketName, objectName, file.getInputStream(), file.getSize(), file.getContentType());
+
         Novel novel = Novel.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .author(request.getAuthor())
+                .title(title)
+                .description(description)
+                .author(author)
+                .filePath(objectName)
                 .user(user)
                 .status(Novel.NovelStatus.UPLOADED)
                 .build();
@@ -95,5 +117,36 @@ public class NovelController {
             @RequestParam Novel.NovelStatus status) {
         Novel updated = novelService.updateStatus(id, status);
         return ResponseEntity.ok(ApiResponse.success("Status updated", updated));
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("文件不能为空");
+        }
+
+        // 文件大小限制：50MB
+        long maxSize = 50 * 1024 * 1024;
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException("文件大小不能超过50MB");
+        }
+
+        // 文件类型限制：只允许.txt
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".txt")) {
+            throw new IllegalArgumentException("只允许上传.txt文本文件");
+        }
+    }
+
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "unnamed.txt";
+        }
+        // 移除路径分隔符
+        String sanitized = fileName.replaceAll("[\\\\/]", "_");
+        // 限制长度
+        if (sanitized.length() > 200) {
+            sanitized = sanitized.substring(0, 200);
+        }
+        return sanitized;
     }
 }

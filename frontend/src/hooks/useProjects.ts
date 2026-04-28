@@ -7,7 +7,15 @@ export function useProjects(params?: PageRequest) {
     queryKey: ['projects', params],
     queryFn: async () => {
       const response = await projectApi.getProjects(params)
-      return response.success ? response.data : []
+      if (response.success && response.data) {
+        return {
+          content: response.data.content,
+          total: response.data.totalElements,
+          page: response.data.number,
+          size: response.data.size,
+        }
+      }
+      return { content: [], total: 0, page: 0, size: 10 }
     },
   })
 }
@@ -29,7 +37,7 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: projectApi.createProject,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'], exact: false })
     },
   })
 }
@@ -40,7 +48,7 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: projectApi.deleteProject,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'], exact: false })
     },
   })
 }

@@ -1,6 +1,6 @@
 import { Layout, Menu, Button, Avatar, Dropdown } from 'antd'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { BookOutlined, ProjectOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons'
+import { BookOutlined, ProjectOutlined, UserOutlined, LogoutOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { useAuthStore } from '@/stores'
 
 const { Header, Sider, Content } = Layout
@@ -20,6 +20,11 @@ export default function MainLayout() {
       key: '/projects',
       icon: <ProjectOutlined />,
       label: '项目管理',
+    },
+    {
+      key: '/tasks/history',
+      icon: <ClockCircleOutlined />,
+      label: '定时任务',
     },
   ]
 
@@ -43,7 +48,11 @@ export default function MainLayout() {
         </div>
         <Menu
           mode="inline"
-          selectedKeys={[location.pathname.startsWith('/novels') ? '/novels' : location.pathname.startsWith('/projects') ? '/projects' : '']}
+          selectedKeys={[
+  location.pathname.startsWith('/novels') ? '/novels' :
+  location.pathname.startsWith('/projects') ? '/projects' :
+  location.pathname.startsWith('/tasks') ? '/tasks/history' : ''
+]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
         />

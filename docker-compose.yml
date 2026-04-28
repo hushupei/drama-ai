@@ -1,21 +1,22 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: short-drama-postgres
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: short-drama-mysql
     environment:
-      POSTGRES_DB: drama
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      MYSQL_DATABASE: drama
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-mysql123}
+      MYSQL_USER: drama
+      MYSQL_PASSWORD: ${DB_PASSWORD:-mysql123}
     ports:
-      - "5432:5432"
+      - "3307:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-mysql123}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -86,10 +87,10 @@ services:
       dockerfile: Dockerfile
     container_name: drama-backend
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/drama
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/drama?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-mysql123}
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       MINIO_ENDPOINT: http://minio:9000
@@ -100,7 +101,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -122,7 +123,7 @@ services:
       dockerfile: Dockerfile
     container_name: drama-ai-service
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/drama
+      DATABASE_URL: mysql://root:${DB_PASSWORD:-mysql123}@mysql:3306/drama
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
@@ -134,7 +135,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -152,9 +153,9 @@ services:
       context: ./ai-service
       dockerfile: Dockerfile
     container_name: drama-celery-worker
-    command: celery -A app.celery_app worker --loglevel=info
+    command: celery -A app.core.celery worker --loglevel=info
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/drama
+      DATABASE_URL: mysql://root:${DB_PASSWORD:-mysql123}@mysql:3306/drama
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
@@ -162,11 +163,40 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-password}@rabbitmq:5672/
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+      JAVA_BACKEND_URL: http://backend:8080
     depends_on:
       - rabbitmq
       - redis
-      - postgres
+      - mysql
       - ai-service
+      - backend
+    networks:
+      - drama-network
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: drama-celery-beat
+    command: celery -A app.core.celery beat --loglevel=info --scheduler celery.beat.PersistentScheduler
+    environment:
+      DATABASE_URL: mysql://root:${DB_PASSWORD:-mysql123}@mysql:3306/drama
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-password}@rabbitmq:5672/
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      JAVA_BACKEND_URL: http://backend:8080
+    depends_on:
+      - rabbitmq
+      - redis
+      - mysql
+      - ai-service
+      - celery-worker
+      - backend
     networks:
       - drama-network
     restart: unless-stopped
@@ -186,11 +216,11 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
   minio_data:
   rabbitmq_data:
 
 networks:
   drama-network:
-    driver: bridge:
+    driver: bridge
