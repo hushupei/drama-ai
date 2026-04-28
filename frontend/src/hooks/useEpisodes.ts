@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { episodeApi, type CreateEpisodeRequest, type UpdateEpisodeRequest, type GenerateScriptRequest } from '@/api/episode'
+import { episodeApi, type CreateEpisodeRequest, type UpdateEpisodeRequest, type GenerateScriptRequest, type RenderVideoRequest } from '@/api/episode'
 import type { Episode } from '@/types'
 
 const EPISODES_KEY = 'episodes'
@@ -83,42 +83,24 @@ export function useDeleteEpisode(projectId: string) {
   })
 }
 
-export function useGenerateScript(projectId: string, episodeId: string) {
-  const queryClient = useQueryClient()
-
+export function useGenerateScript() {
   return useMutation({
     mutationFn: async (data: GenerateScriptRequest) => {
-      const response = await episodeApi.generateScript(projectId, episodeId, data)
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to generate script')
-      }
-      return response.data as Episode
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [EPISODES_KEY, projectId] })
-      queryClient.invalidateQueries({ queryKey: [EPISODES_KEY, projectId, episodeId] })
+      const response = await episodeApi.generateScript(data)
+      return response
     },
   })
 }
 
-export function useRenderVideo(projectId: string, episodeId: string) {
-  const queryClient = useQueryClient()
-
+export function useRenderVideo() {
   return useMutation({
-    mutationFn: async () => {
-      const response = await episodeApi.renderVideo(projectId, episodeId)
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to render video')
-      }
-      return response.data as Episode
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [EPISODES_KEY, projectId] })
-      queryClient.invalidateQueries({ queryKey: [EPISODES_KEY, projectId, episodeId] })
+    mutationFn: async (data: RenderVideoRequest) => {
+      const response = await episodeApi.renderVideo(data)
+      return response
     },
   })
 }
 
-export function useVideoPreviewUrl(projectId: string, episodeId: string): string {
-  return episodeApi.previewVideo(projectId, episodeId)
+export function useVideoPreviewUrl(videoUrl: string): string {
+  return episodeApi.previewVideo(videoUrl)
 }

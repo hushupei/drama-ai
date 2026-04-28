@@ -15,8 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -52,7 +56,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> register(@Valid @RequestBody UserRegistrationRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody UserRegistrationRequest request) {
         if (userService.existsByUsername(request.getUsername())) {
             throw new ValidationException("Username already exists");
         }
@@ -68,6 +72,27 @@ public class AuthController {
                 .build();
 
         User created = userService.createUser(user);
-        return ResponseEntity.ok(ApiResponse.success("Registration successful", created));
+
+        String token = tokenProvider.generateToken(created.getId(), created.getUsername());
+        LoginResponse response = LoginResponse.builder()
+                .token(token)
+                .user(UserResponse.fromEntity(created))
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success("Registration successful", response));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getCredentials() instanceof UUID)) {
+            throw new ValidationException("Not authenticated");
+        }
+
+        UUID userId = (UUID) auth.getCredentials();
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new ValidationException("User not found"));
+
+        return ResponseEntity.ok(ApiResponse.success("Current user", UserResponse.fromEntity(user)));
     }
 }

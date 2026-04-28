@@ -1,5 +1,5 @@
 """Novel Parsing Task"""
-import uuid
+import chardet
 from celery import shared_task
 from app.core.logging import setup_logging
 from app.core.minio_client import minio_storage
@@ -28,7 +28,8 @@ def parse_novel_task(self, novel_id: str, storage_path: str, use_llm: bool = Tru
 
         # Download file from MinIO
         file_content = minio_storage.download_file(storage_path)
-        content = file_content.decode("utf-8")
+        encoding = chardet.detect(file_content)["encoding"] or "utf-8"
+        content = file_content.decode(encoding)
 
         # Use parser service for extraction
         parse_result = parser_service.parse_novel(content, use_llm=use_llm)
@@ -44,12 +45,12 @@ def parse_novel_task(self, novel_id: str, storage_path: str, use_llm: bool = Tru
             # Save chapters
             for chapter in parse_result["chapters"]:
                 chapter["novel_id"] = novel_id
-                backend_client.create_chapter(chapter)
+                backend_client.create_chapter(novel_id, chapter)
 
             # Save characters
             for character in parse_result["characters"]:
                 character["novel_id"] = novel_id
-                backend_client.create_character(character)
+                backend_client.create_character(novel_id, character)
 
             # Update novel status
             backend_client.update_novel_status(novel_id, "parsed")

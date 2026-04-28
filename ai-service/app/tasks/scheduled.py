@@ -29,7 +29,11 @@ def sync_novel_parsing_status(self) -> dict:
         logger.info("开始同步小说解析状态...")
         base_url = settings.JAVA_BACKEND_URL or "http://backend:8080"
 
-        with httpx.Client(timeout=30.0) as client:
+        headers = {
+            "X-Service-Token": settings.SERVICE_API_TOKEN or "",
+            "Content-Type": "application/json",
+        }
+        with httpx.Client(timeout=30.0, headers=headers) as client:
             # 获取待解析的小说列表
             response = client.get(
                 f"{base_url}/api/novels",
@@ -144,7 +148,11 @@ def generate_statistics_report(self) -> dict:
         logger.info("开始生成统计报告...")
         base_url = settings.JAVA_BACKEND_URL or "http://backend:8080"
 
-        with httpx.Client(timeout=30.0) as client:
+        headers = {
+            "X-Service-Token": settings.SERVICE_API_TOKEN or "",
+            "Content-Type": "application/json",
+        }
+        with httpx.Client(timeout=30.0, headers=headers) as client:
             # 获取各类统计数据
             stats = {
                 "timestamp": datetime.now().isoformat(),

@@ -19,6 +19,9 @@ class ParseNovelRequest(BaseModel):
 
 class GenerateScriptRequest(BaseModel):
     chapter_id: UUID
+    episode_id: UUID
+    project_id: UUID
+    novel_id: UUID
     style: Literal["dialogue", "narrative", "mixed"] = "mixed"
     character_count: int = Field(default=2, ge=1, le=10)
 
@@ -26,6 +29,7 @@ class GenerateScriptRequest(BaseModel):
 class RenderVideoRequest(BaseModel):
     script_id: UUID
     episode_id: UUID
+    project_id: UUID
     resolution: Literal["720p", "1080p", "4k"] = "1080p"
     duration_target: int = Field(default=60, ge=30, le=300)
 
@@ -61,6 +65,9 @@ async def create_generate_task(request: GenerateScriptRequest):
     """Create a script generation task"""
     task = generate_script_task.delay(
         str(request.chapter_id),
+        str(request.episode_id),
+        str(request.project_id),
+        str(request.novel_id),
         request.style,
         request.character_count,
     )
@@ -77,6 +84,7 @@ async def create_render_task(request: RenderVideoRequest):
     task = render_video_task.delay(
         str(request.script_id),
         str(request.episode_id),
+        str(request.project_id),
         request.resolution,
         request.duration_target,
     )

@@ -1,142 +1,142 @@
-# Mac mini 4 本地服务安装指南
+# 环境搭建指南
 
-## 系统要求
+推荐使用 Docker Compose 一键启动全部服务。仅在需要本地调试单个服务时才使用手动安装。
 
-- macOS 14+ (Sonoma)
-- Homebrew 已安装
-- 内存 >= 16GB
-- 存储 >= 512GB
+## 方式一：Docker Compose（推荐）
 
-## 安装步骤
+### 前置要求
 
-### 1. PostgreSQL 15
+- Docker Desktop 4.x+
+- 至少 8GB 内存分配给 Docker
+
+### 启动
 
 ```bash
-# 安装
-brew install postgresql@15
+# 1. 配置环境变量
+cp .env.example .env
+# 编辑 .env，至少需要配置 OPENAI_API_KEY
 
-# 启动服务
-brew services start postgresql@15
+# 2. 启动全部服务
+docker compose up -d
 
-# 创建数据库
-createdb shortdrama
+# 3. 查看日志
+docker compose logs -f
 
-# 验证
-psql -d shortdrama -c "SELECT version();"
+# 4. 停止
+docker compose down
 ```
 
-### 2. Redis 7
+### 验证服务状态
 
 ```bash
-# 安装
-brew install redis
-
-# 启动服务
-brew services start redis
-
-# 验证
-redis-cli ping
-```
-
-### 3. MinIO
-
-```bash
-# 下载
-wget https://dl.min.io/server/minio/release/darwin-arm64/minio
-chmod +x minio
-mv minio /usr/local/bin/
-
-# 创建数据目录
-mkdir -p ~/minio-data
-
-# 启动（开发模式）
-export MINIO_ROOT_USER=minioadmin
-export MINIO_ROOT_PASSWORD=minioadmin
-minio server ~/minio-data --console-address :9001
-
-# 验证
-open http://localhost:9001
-```
-
-### 4. RabbitMQ
-
-```bash
-# 安装
-brew install rabbitmq
-
-# 启动服务
-brew services start rabbitmq
-
-# 验证
-open http://localhost:15672
-# 默认账号: guest / guest
-```
-
-## 环境变量配置
-
-创建 `.env` 文件：
-
-```bash
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=shortdrama
-DB_USERNAME=postgres
-DB_PASSWORD=password
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# MinIO
-MINIO_ENDPOINT=http://localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-
-# JWT
-JWT_SECRET=your-secret-key-here
-```
-
-## 启动所有服务（开发模式）
-
-```bash
-# Terminal 1: PostgreSQL (已启动)
-brew services start postgresql@15
-
-# Terminal 2: Redis (已启动)
-brew services start redis
-
-# Terminal 3: MinIO
-cd ~/minio-data && minio server . --console-address :9001
-
-# Terminal 4: RabbitMQ (已启动)
-brew services start rabbitmq
-
-# Terminal 5: Java Backend
-cd backend && ./mvnw spring-boot:run
-
-# Terminal 6: Python AI Service
-cd ai-service && python -m uvicorn main:app --reload
-```
-
-## 验证服务状态
-
-```bash
-# PostgreSQL
-psql -d shortdrama -c "SELECT 1;"
-
-# Redis
-redis-cli ping
-
-# MinIO
-curl http://localhost:9000/minio/health/live
-
-# RabbitMQ
-curl http://localhost:15672/api/overview -u guest:guest
-
 # Java Backend
 curl http://localhost:8080/actuator/health
 
 # Python AI Service
 curl http://localhost:8000/health
+
+# MinIO
+curl http://localhost:9000/minio/health/live
+
+# 前端
+curl http://localhost:3000
+```
+
+### 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `OPENAI_API_KEY` | — | OpenAI API 密钥（必填） |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | LLM API 地址（可用兼容服务） |
+| `SERVICE_API_TOKEN` | `internal-dev-token` | AI 服务 → Backend 内部认证 Token |
+| `MINIO_BUCKET` | `drama-files` | MinIO 存储桶名称 |
+| `JWT_SECRET` | `dev-secret-change-in-production` | JWT 签名密钥 |
+| `MYSQL_ROOT_PASSWORD` | `root123` | MySQL root 密码 |
+
+## 方式二：手动安装（仅调试用）
+
+### macOS (Apple Silicon)
+
+```bash
+# MySQL 8.0
+brew install mysql@8.0
+brew services start mysql@8.0
+
+# Redis
+brew install redis
+brew services start redis
+
+# RabbitMQ
+brew install rabbitmq
+brew services start rabbitmq
+
+# MinIO
+mkdir -p ~/minio-data
+minio server ~/minio-data --console-address :9001
+```
+
+### 启动开发服务器
+
+```bash
+# Terminal 1: Backend
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Terminal 2: AI Service
+cd ai-service
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+
+# Terminal 3: Celery Worker
+cd ai-service
+celery -A app.core.celery worker --loglevel=info
+
+# Terminal 4: Frontend
+cd frontend
+npm install && npm run dev
+```
+
+## 数据库初始化
+
+Docker Compose 会自动创建数据库表（Spring Boot JPA `ddl-auto: update`）。
+
+手动初始化：
+
+```bash
+# 进入 MySQL 容器
+docker compose exec mysql mysql -u root -p
+
+# 创建数据库
+CREATE DATABASE IF NOT EXISTS shortdrama;
+```
+
+## 故障排查
+
+### MySQL 连接失败
+
+```bash
+# 检查 MySQL 是否就绪
+docker compose logs mysql | grep "ready for connections"
+```
+
+### AI 服务无法连接 Backend
+
+确认 `SERVICE_API_TOKEN` 在 `.env` 和 Backend `application.yml` 中一致。
+
+### Celery 任务不执行
+
+```bash
+# 检查 RabbitMQ 状态
+docker compose logs rabbitmq
+
+# 重启 Celery Worker
+docker compose restart celery-worker
+```
+
+### MinIO Bucket 不存在
+
+```bash
+# 手动创建
+docker compose exec minio mc mb local/drama-files
 ```

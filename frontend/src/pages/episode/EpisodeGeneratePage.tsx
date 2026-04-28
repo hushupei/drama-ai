@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Card,
@@ -6,14 +6,12 @@ import {
   Spin,
   Form,
   Input,
+  InputNumber,
   Select,
   Steps,
   message,
-  List,
-  Checkbox,
-  Tag,
   Space,
-  Divider,
+  Progress,
 } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -21,83 +19,126 @@ import {
   FileTextOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons'
-import { useEpisode, useGenerateScript, useRenderVideo } from '@/hooks'
-import type { CheckboxChangeEvent } from 'antd/es/checkbox'
+import { useEpisode, useGenerateScript, useRenderVideo, useProject, useChapters } from '@/hooks'
+import { taskApi } from '@/api/task'
 
 const { Step } = Steps
 const { TextArea } = Input
-
-interface ScriptFormValues {
-  style: 'dramatic' | 'comedy' | 'suspense' | 'romantic'
-  duration: number
-}
 
 export default function EpisodeGeneratePage() {
   const { projectId, episodeId } = useParams<{ projectId: string; episodeId: string }>()
   const navigate = useNavigate()
   const [form] = Form.useForm()
+  const [renderForm] = Form.useForm()
   const [currentStep, setCurrentStep] = useState(0)
-  const [selectedChapters, setSelectedChapters] = useState<string[]>([])
-  const [selectedCharacters, setSelectedCharacters] = useState<string[]>([])
+  const [generating, setGenerating] = useState(false)
+  const [rendering, setRendering] = useState(false)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const { data: episode, isLoading } = useEpisode(projectId || '', episodeId || '')
-  const generateScript = useGenerateScript(projectId || '', episodeId || '')
-  const renderVideo = useRenderVideo(projectId || '', episodeId || '')
+  const { data: episode, isLoading, refetch: refetchEpisode } = useEpisode(projectId || '', episodeId || '')
+  const { data: project } = useProject(projectId || '')
+  const novelId = project?.novelId || ''
+  const { data: chapters = [], isLoading: chaptersLoading } = useChapters(novelId)
+  const generateScript = useGenerateScript()
+  const renderVideo = useRenderVideo()
 
-  // Mock data - in real implementation, fetch from API
-  const chapters = [
-    { id: '1', title: '第一章', content: '第一章内容摘要...' },
-    { id: '2', title: '第二章', content: '第二章内容摘要...' },
-  ]
-
-  const characters = [
-    { id: '1', name: '主角A', description: '故事主角' },
-    { id: '2', name: '配角B', description: '重要配角' },
-  ]
-
-  const handleChapterSelect = (e: CheckboxChangeEvent, chapterId: string) => {
-    if (e.target.checked) {
-      setSelectedChapters([...selectedChapters, chapterId])
-    } else {
-      setSelectedChapters(selectedChapters.filter((id) => id !== chapterId))
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current)
     }
+  }, [])
+
+  const startPolling = (taskId: string, onComplete: () => void, onError: (err: string) => void) => {
+    if (pollingRef.current) clearInterval(pollingRef.current)
+    pollingRef.current = setInterval(async () => {
+      try {
+        const result = await taskApi.getTaskStatus(taskId)
+        if (result.status === 'SUCCESS') {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          onComplete()
+        } else if (result.status === 'FAILURE') {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          onError(result.error || 'Task failed')
+        }
+      } catch {
+        // Keep polling on network errors
+      }
+    }, 3000)
   }
 
-  const handleCharacterSelect = (e: CheckboxChangeEvent, characterId: string) => {
-    if (e.target.checked) {
-      setSelectedCharacters([...selectedCharacters, characterId])
-    } else {
-      setSelectedCharacters(selectedCharacters.filter((id) => id !== characterId))
-    }
-  }
-
-  const handleGenerateScript = async (values: ScriptFormValues) => {
-    if (selectedChapters.length === 0) {
-      message.error('请至少选择一个章节')
+  const handleGenerateScript = async (values: {
+    chapter_id: string
+    style: 'dialogue' | 'narrative' | 'mixed'
+    character_count: number
+  }) => {
+    if (!novelId) {
+      message.error('无法获取小说信息')
       return
     }
 
+    setGenerating(true)
     try {
-      await generateScript.mutateAsync({
-        chapterIds: selectedChapters,
-        characterIds: selectedCharacters,
+      const { task_id } = await generateScript.mutateAsync({
+        chapter_id: values.chapter_id,
+        episode_id: episodeId || '',
+        project_id: projectId || '',
+        novel_id: novelId,
         style: values.style,
-        duration: values.duration,
+        character_count: values.character_count,
       })
-      message.success('剧本生成成功')
-      setCurrentStep(1)
+      message.success('剧本生成任务已提交')
+
+      startPolling(
+        task_id,
+        () => {
+          setGenerating(false)
+          message.success('剧本生成完成')
+          refetchEpisode()
+          setCurrentStep(1)
+        },
+        (err) => {
+          setGenerating(false)
+          message.error(`剧本生成失败: ${err}`)
+        },
+      )
     } catch {
-      message.error('剧本生成失败')
+      setGenerating(false)
+      message.error('提交剧本生成任务失败')
     }
   }
 
-  const handleRenderVideo = async () => {
+  const handleRenderVideo = async (values: {
+    resolution: '720p' | '1080p' | '4k'
+    duration_target: number
+  }) => {
+    setRendering(true)
     try {
-      await renderVideo.mutateAsync()
-      message.success('开始渲染视频')
-      setCurrentStep(2)
+      const { task_id } = await renderVideo.mutateAsync({
+        script_id: episodeId || '',
+        episode_id: episodeId || '',
+        project_id: projectId || '',
+        resolution: values.resolution,
+        duration_target: values.duration_target,
+      })
+      message.success('视频渲染任务已提交')
+
+      startPolling(
+        task_id,
+        () => {
+          setRendering(false)
+          message.success('视频渲染完成')
+          refetchEpisode()
+        },
+        (err) => {
+          setRendering(false)
+          message.error(`视频渲染失败: ${err}`)
+        },
+      )
     } catch {
-      message.error('视频渲染失败')
+      setRendering(false)
+      message.error('提交视频渲染任务失败')
     }
   }
 
@@ -113,101 +154,86 @@ export default function EpisodeGeneratePage() {
     return <div>剧集不存在</div>
   }
 
+  const taskInProgress = generating || rendering
+
   const steps = [
     {
       title: '生成剧本',
       icon: <FileTextOutlined />,
       content: (
-        <Card title="选择素材">
-          <Divider orientation="left">选择章节</Divider>
-          <List
-            dataSource={chapters}
-            renderItem={(chapter) => (
-              <List.Item>
-                <Checkbox
-                  onChange={(e) => handleChapterSelect(e, chapter.id)}
-                  checked={selectedChapters.includes(chapter.id)}
-                >
-                  <Space direction="vertical" style={{ marginLeft: 8 }}>
-                    <strong>{chapter.title}</strong>
-                    <span style={{ color: '#666' }}>{chapter.content}</span>
-                  </Space>
-                </Checkbox>
-              </List.Item>
-            )}
-          />
-
-          <Divider orientation="left">选择角色</Divider>
-          <List
-            dataSource={characters}
-            renderItem={(character) => (
-              <List.Item>
-                <Checkbox
-                  onChange={(e) => handleCharacterSelect(e, character.id)}
-                  checked={selectedCharacters.includes(character.id)}
-                >
-                  <Space direction="vertical" style={{ marginLeft: 8 }}>
-                    <strong>{character.name}</strong>
-                    <Tag color="blue">{character.description}</Tag>
-                  </Space>
-                </Checkbox>
-              </List.Item>
-            )}
-          />
-
-          <Divider orientation="left">生成设置</Divider>
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleGenerateScript}
-            initialValues={{ style: 'dramatic', duration: 60 }}
-          >
-            <Form.Item name="style" label="剧本风格">
-              <Select
-                options={[
-                  { value: 'dramatic', label: '戏剧性' },
-                  { value: 'comedy', label: '喜剧' },
-                  { value: 'suspense', label: '悬疑' },
-                  { value: 'romantic', label: '浪漫' },
-                ]}
-              />
-            </Form.Item>
-
-            <Form.Item name="duration" label="目标时长（秒）">
-              <Select
-                options={[
-                  { value: 30, label: '30秒' },
-                  { value: 60, label: '60秒' },
-                  { value: 90, label: '90秒' },
-                  { value: 120, label: '120秒' },
-                ]}
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={generateScript.isPending}
-                disabled={selectedChapters.length === 0}
+        <Card title="剧本生成设置">
+          {chaptersLoading ? (
+            <Spin />
+          ) : (
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleGenerateScript}
+              initialValues={{ style: 'mixed', character_count: 2 }}
+            >
+              <Form.Item
+                name="chapter_id"
+                label="选择章节"
+                rules={[{ required: true, message: '请选择章节' }]}
               >
-                生成剧本
-              </Button>
-            </Form.Item>
-          </Form>
+                <Select
+                  placeholder="选择要改编的章节"
+                  options={chapters.map((ch) => ({
+                    value: ch.id,
+                    label: ch.title || `第${ch.chapterNumber}章`,
+                  }))}
+                />
+              </Form.Item>
+
+              <Form.Item name="style" label="剧本风格">
+                <Select
+                  options={[
+                    { value: 'dialogue', label: '对白为主' },
+                    { value: 'narrative', label: '叙事为主' },
+                    { value: 'mixed', label: '混合风格' },
+                  ]}
+                />
+              </Form.Item>
+
+              <Form.Item name="character_count" label="出场角色数">
+                <InputNumber min={1} max={10} />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={generating}
+                  disabled={taskInProgress || !novelId}
+                >
+                  生成剧本
+                </Button>
+              </Form.Item>
+            </Form>
+          )}
+
+          {generating && (
+            <div style={{ textAlign: 'center', padding: '24px' }}>
+              <Spin />
+              <p style={{ marginTop: 12 }}>剧本生成中，请稍候...</p>
+            </div>
+          )}
         </Card>
       ),
     },
     {
-      title: '编辑剧本',
+      title: '查看剧本',
       icon: <FileTextOutlined />,
       content: (
         <Card title="剧本内容">
           <TextArea
-            rows={15}
-            defaultValue={episode.scriptContent || '剧本内容将显示在这里...'}
+            rows={20}
+            value={episode.scriptContent || '剧本尚未生成'}
+            readOnly
+            style={{ fontFamily: 'monospace' }}
           />
-          <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between' }}>
+            <Button onClick={() => setCurrentStep(0)}>返回修改</Button>
             <Button type="primary" onClick={() => setCurrentStep(2)}>
               确认并渲染视频
             </Button>
@@ -220,36 +246,65 @@ export default function EpisodeGeneratePage() {
       icon: <VideoCameraOutlined />,
       content: (
         <Card title="视频渲染">
-          {episode.status === 'rendering' ? (
-            <div style={{ textAlign: 'center', padding: '50px' }}>
-              <Spin size="large" />
-              <p style={{ marginTop: 16 }}>视频渲染中...</p>
-            </div>
-          ) : episode.videoUrl ? (
-            <div>
+          {episode.videoUrl ? (
+            <div style={{ textAlign: 'center' }}>
               <video
                 src={episode.videoUrl}
                 controls
-                style={{ width: '100%', maxHeight: '400px' }}
+                style={{ width: '100%', maxHeight: '400px', borderRadius: '8px' }}
               />
-              <div style={{ marginTop: 16, textAlign: 'right' }}>
-                <Button type="primary" icon={<PlayCircleOutlined />}>
-                  预览视频
-                </Button>
+              <div style={{ marginTop: 16 }}>
+                <Space>
+                  <Button
+                    type="primary"
+                    icon={<PlayCircleOutlined />}
+                    onClick={() => navigate(`/projects/${projectId}/episodes/${episodeId}/preview`)}
+                  >
+                    预览视频
+                  </Button>
+                  <Button onClick={() => setCurrentStep(1)}>返回编辑</Button>
+                </Space>
               </div>
             </div>
-          ) : (
+          ) : rendering ? (
             <div style={{ textAlign: 'center', padding: '50px' }}>
-              <p>准备好渲染视频了吗？</p>
-              <Button
-                type="primary"
-                icon={<VideoCameraOutlined />}
-                onClick={handleRenderVideo}
-                loading={renderVideo.isPending}
-              >
-                开始渲染
-              </Button>
+              <Spin size="large" />
+              <p style={{ marginTop: 16 }}>视频渲染中，请稍候...</p>
+              <Progress percent={99} status="active" style={{ maxWidth: 400, margin: '16px auto' }} />
             </div>
+          ) : (
+            <Form
+              form={renderForm}
+              layout="vertical"
+              onFinish={handleRenderVideo}
+              initialValues={{ resolution: '1080p', duration_target: 60 }}
+            >
+              <Form.Item name="resolution" label="分辨率">
+                <Select
+                  options={[
+                    { value: '720p', label: '720p' },
+                    { value: '1080p', label: '1080p' },
+                    { value: '4k', label: '4K' },
+                  ]}
+                />
+              </Form.Item>
+
+              <Form.Item name="duration_target" label="目标时长（秒）">
+                <InputNumber min={30} max={300} />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  icon={<VideoCameraOutlined />}
+                  htmlType="submit"
+                  loading={rendering}
+                  disabled={taskInProgress}
+                >
+                  开始渲染
+                </Button>
+              </Form.Item>
+            </Form>
           )}
         </Card>
       ),
@@ -267,7 +322,7 @@ export default function EpisodeGeneratePage() {
       </Button>
 
       <Card title={`${episode.title} - 剧集生成`}>
-        <Steps current={currentStep} style={{ marginBottom: 24 }}>
+        <Steps current={currentStep} onChange={(step) => !taskInProgress && setCurrentStep(step)} style={{ marginBottom: 24 }}>
           {steps.map((step) => (
             <Step key={step.title} title={step.title} icon={step.icon} />
           ))}

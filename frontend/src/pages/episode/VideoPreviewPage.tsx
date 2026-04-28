@@ -22,13 +22,13 @@ export default function VideoPreviewPage() {
   const navigate = useNavigate()
 
   const { data: episode, isLoading } = useEpisode(projectId || '', episodeId || '')
-  useVideoPreviewUrl(projectId || '', episodeId || '')
+  const videoUrl = useVideoPreviewUrl(episode?.videoUrl || '')
 
   const handleDownload = () => {
-    if (episode?.videoUrl) {
+    if (videoUrl) {
       const link = document.createElement('a')
-      link.href = episode.videoUrl
-      link.download = `${episode.title}.mp4`
+      link.href = videoUrl
+      link.download = `${episode?.title || 'video'}.mp4`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -37,10 +37,8 @@ export default function VideoPreviewPage() {
   }
 
   const handleShare = () => {
-    if (episode?.videoUrl) {
-      navigator.clipboard.writeText(window.location.href)
-      message.success('链接已复制到剪贴板')
-    }
+    navigator.clipboard.writeText(window.location.href)
+    message.success('链接已复制到剪贴板')
   }
 
   if (isLoading) {
@@ -56,11 +54,13 @@ export default function VideoPreviewPage() {
   }
 
   const statusMap: Record<string, { label: string; color: string }> = {
-    pending: { label: '待处理', color: 'default' },
-    script_generated: { label: '剧本已生成', color: 'processing' },
-    rendering: { label: '渲染中', color: 'warning' },
-    completed: { label: '已完成', color: 'success' },
-    failed: { label: '失败', color: 'error' },
+    PENDING: { label: '待处理', color: 'default' },
+    GENERATING_SCRIPT: { label: '剧本生成中', color: 'processing' },
+    GENERATING_SCENES: { label: '场景生成中', color: 'processing' },
+    GENERATING_AUDIO: { label: '音频生成中', color: 'warning' },
+    RENDERING_VIDEO: { label: '渲染中', color: 'warning' },
+    COMPLETED: { label: '已完成', color: 'success' },
+    FAILED: { label: '失败', color: 'error' },
   }
 
   return (
@@ -80,14 +80,13 @@ export default function VideoPreviewPage() {
             <Button
               icon={<DownloadOutlined />}
               onClick={handleDownload}
-              disabled={!episode.videoUrl}
+              disabled={!videoUrl}
             >
               下载
             </Button>
             <Button
               icon={<ShareAltOutlined />}
               onClick={handleShare}
-              disabled={!episode.videoUrl}
             >
               分享
             </Button>
@@ -109,10 +108,10 @@ export default function VideoPreviewPage() {
           </Descriptions.Item>
         </Descriptions>
 
-        {episode.videoUrl ? (
+        {videoUrl ? (
           <div style={{ textAlign: 'center' }}>
             <video
-              src={episode.videoUrl}
+              src={videoUrl}
               controls
               style={{
                 width: '100%',

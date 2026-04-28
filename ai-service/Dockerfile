@@ -3,41 +3,43 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
+# Use Alibaba Cloud mirror for faster apt
+RUN echo 'deb http://mirrors.aliyun.com/debian trixie main' > /etc/apt/sources.list && \
+    echo 'deb http://mirrors.aliyun.com/debian-security trixie-security main' >> /etc/apt/sources.list
+
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies to a dedicated directory
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Runtime stage
 FROM python:3.11-slim
 
 WORKDIR /app
 
+# Use Alibaba Cloud mirror for faster apt
+RUN echo 'deb http://mirrors.aliyun.com/debian trixie main' > /etc/apt/sources.list && \
+    echo 'deb http://mirrors.aliyun.com/debian-security trixie-security main' >> /etc/apt/sources.list
+
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder
-COPY --from=builder /root/.local /root/.local
-
-# Make sure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
+# Copy Python packages from builder (system-wide install)
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY app ./app
 COPY main.py .
-
-# Create non-root user
-RUN groupadd -g 1001 appsgroup && \
-    useradd -u 1001 -g appsgroup -s /bin/bash appsuser
-USER appsuser
 
 EXPOSE 8000
 

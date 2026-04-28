@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Table, Card, Tag, Button, Space, Statistic, Row, Col, Select, Badge } from 'antd'
+import { Table, Card, Tag, Button, Space, Statistic, Row, Col, Select, Badge, Typography } from 'antd'
 import { ReloadOutlined, DeleteOutlined, ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+
+const { Text, Paragraph } = Typography
 import { taskApi } from '@/api'
 
 interface TaskHistoryItem {
@@ -82,6 +84,9 @@ export default function TaskHistoryPage() {
       'sync_novel_parsing_status': '同步小说解析状态',
       'generate_statistics_report': '生成统计报告',
       'cleanup_old_logs': '清理旧日志',
+      'parse_novel': '解析小说',
+      'generate_script': '生成剧本',
+      'render_video': '渲染视频',
     }
     return labels[name] || name
   }
@@ -133,12 +138,27 @@ export default function TaskHistoryPage() {
       key: 'result',
       render: (_: any, record: TaskHistoryItem) => {
         if (record.error) {
-          return <span style={{ color: '#ff4d4f', fontSize: 12 }}>{record.error.substring(0, 100)}</span>
+          return (
+            <Paragraph
+              type="danger"
+              style={{ fontSize: 12, marginBottom: 0 }}
+              ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+            >
+              {record.error}
+            </Paragraph>
+          )
         }
         if (record.result && typeof record.result === 'object') {
-          return <span style={{ fontSize: 12 }}>{JSON.stringify(record.result).substring(0, 100)}</span>
+          return (
+            <Paragraph
+              style={{ fontSize: 12, marginBottom: 0 }}
+              ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+            >
+              {JSON.stringify(record.result)}
+            </Paragraph>
+          )
         }
-        return <span style={{ fontSize: 12 }}>{String(record.result || '-')}</span>
+        return <Text style={{ fontSize: 12 }}>{String(record.result || '-')}</Text>
       },
     },
   ]
@@ -214,6 +234,9 @@ export default function TaskHistoryPage() {
             style={{ width: 200 }}
             options={[
               { value: 'all', label: '全部任务' },
+              { value: 'parse_novel', label: '解析小说' },
+              { value: 'generate_script', label: '生成剧本' },
+              { value: 'render_video', label: '渲染视频' },
               { value: 'sync_novel_parsing_status', label: '同步小说解析状态' },
               { value: 'generate_statistics_report', label: '生成统计报告' },
               { value: 'cleanup_old_logs', label: '清理旧日志' },

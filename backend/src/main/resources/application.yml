@@ -49,12 +49,15 @@ minio:
   port: ${MINIO_PORT:9000}
   accessKey: ${MINIO_ACCESS_KEY:minioadmin}
   secretKey: ${MINIO_SECRET_KEY:minioadmin}
-  bucket: ${MINIO_BUCKET:drama-videos}
+  bucket: ${MINIO_BUCKET:drama-files}
   useSSL: ${MINIO_USE_SSL:false}
 
 ai:
   service:
     url: ${AI_SERVICE_URL:http://localhost:8000}
+
+service:
+  api-token: ${SERVICE_API_TOKEN:internal-dev-token}
 
 logging:
   level:

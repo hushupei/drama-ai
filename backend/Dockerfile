@@ -1,29 +1,27 @@
 # Backend Dockerfile
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM maven:3.9-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-COPY mvnw .
-COPY .mvn ./.mvn
 
-# Build the application
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+# Build the application (skip tests entirely)
+RUN mvn clean package -DskipTests -Dmaven.test.skip=true
 
 # Runtime stage
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 # Install curl for healthcheck
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy the built JAR
 COPY --from=builder /app/target/*.jar app.jar
 
 # Create non-root user
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -s /bin/bash appuser
 USER appuser
 
 EXPOSE 8080

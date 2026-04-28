@@ -18,10 +18,11 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin"
-    MINIO_BUCKET: str = "short-drama"
+    MINIO_BUCKET: str = "drama-files"
     MINIO_SECURE: bool = False
 
     JAVA_BACKEND_URL: str = "http://localhost:8080"
+    SERVICE_API_TOKEN: str = ""
 
     class Config:
         env_file = ".env"

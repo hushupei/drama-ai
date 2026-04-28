@@ -1,6 +1,7 @@
 package com.shortdrama.config;
 
 import com.shortdrama.security.JwtAuthenticationFilter;
+import com.shortdrama.security.ServiceAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ServiceAuthFilter serviceAuthFilter;
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -36,6 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(serviceAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -11,9 +11,9 @@ export interface Novel {
   id: string
   title: string
   author: string
-  summary: string | null
+  description: string | null
   storagePath: string
-  status: 'uploaded' | 'parsing' | 'parsed' | 'generating' | 'completed' | 'failed'
+  status: 'UPLOADED' | 'PARSING' | 'PARSED' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
   userId: string
   createdAt: string
   updatedAt: string
@@ -25,7 +25,6 @@ export interface Chapter {
   chapterNumber: number
   title: string | null
   content: string | null
-  summary: string | null
   createdAt: string
   updatedAt: string
 }
@@ -49,6 +48,7 @@ export interface Project {
   status: 'draft' | 'in_progress' | 'completed' | 'archived'
   userId: string
   novelId: string
+  episodes?: Episode[]
   createdAt: string
   updatedAt: string
 }
@@ -61,7 +61,8 @@ export interface Episode {
   scriptContent: string | null
   videoUrl: string | null
   duration: number | null
-  status: 'pending' | 'script_generated' | 'rendering' | 'completed' | 'failed'
+  status: 'PENDING' | 'GENERATING_SCRIPT' | 'GENERATING_SCENES' | 'GENERATING_AUDIO' | 'RENDERING_VIDEO' | 'COMPLETED' | 'FAILED'
+  chapter?: { title?: string } | null
   createdAt: string
   updatedAt: string
 }
