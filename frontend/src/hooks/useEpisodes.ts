@@ -84,19 +84,27 @@ export function useDeleteEpisode(projectId: string) {
 }
 
 export function useGenerateScript() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: GenerateScriptRequest) => {
       const response = await episodeApi.generateScript(data)
       return response
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['episodes'] })
+    },
   })
 }
 
 export function useRenderVideo() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: RenderVideoRequest) => {
       const response = await episodeApi.renderVideo(data)
       return response
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['episodes'] })
     },
   })
 }

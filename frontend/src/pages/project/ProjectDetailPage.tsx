@@ -111,7 +111,7 @@ export default function ProjectDetailPage() {
         project_id: projectId,
         novel_id: novelId,
         style: 'mixed',
-        character_count: 0,
+        character_count: 2,
       })
       const taskId = res.task_id || (res as any).data?.task_id
       if (taskId) {
@@ -140,7 +140,7 @@ export default function ProjectDetailPage() {
     setRenderingEpisodes((prev) => new Set(prev).add(ep.id))
     try {
       const res = await renderVideo.mutateAsync({
-        script_id: '',
+        script_id: ep.id,
         episode_id: ep.id,
         project_id: projectId,
         resolution: '1080p',

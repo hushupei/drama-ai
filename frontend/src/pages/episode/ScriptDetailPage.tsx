@@ -34,7 +34,7 @@ export default function ScriptDetailPage() {
   if (!scriptContent) {
     return (
       <div>
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/projects/${projectId}`)} style={{ marginBottom: 16 }}>
           返回
         </Button>
         <Empty description="该剧集尚未生成剧本">
@@ -64,7 +64,7 @@ export default function ScriptDetailPage() {
 
   return (
     <div>
-      <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>
+      <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/projects/${projectId}`)} style={{ marginBottom: 16 }}>
         返回
       </Button>
 
