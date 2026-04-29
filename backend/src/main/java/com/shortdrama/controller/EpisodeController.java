@@ -62,6 +62,15 @@ public class EpisodeController {
         return ResponseEntity.ok(ApiResponse.success("Episode created", created));
     }
 
+    @PostMapping("/init")
+    public ResponseEntity<ApiResponse<List<Episode>>> initFromChapters(
+            @PathVariable UUID projectId,
+            @RequestBody Map<String, List<UUID>> body) {
+        List<UUID> chapterIds = body.getOrDefault("chapterIds", List.of());
+        List<Episode> episodes = episodeService.initFromChapters(projectId, chapterIds);
+        return ResponseEntity.ok(ApiResponse.success(episodes));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<Episode>>> getByProjectId(@PathVariable UUID projectId) {
         List<Episode> episodes = episodeService.findByProjectId(projectId);

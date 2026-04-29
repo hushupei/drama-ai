@@ -27,6 +27,7 @@ import {
   SyncOutlined,
 } from '@ant-design/icons'
 import { useProject, useEpisodes, useChapters, usePublishProject, useBatchGenerate, useBatchRender, useGenerateScript, useRenderVideo } from '@/hooks'
+import { episodeApi } from '@/api/episode'
 import { taskApi } from '@/api/task'
 import ChapterContentModal from '@/pages/novel/ChapterContentModal'
 import type { Chapter, Episode } from '@/types'
@@ -173,7 +174,13 @@ export default function ProjectDetailPage() {
       const chapterIds = chapters
         .filter((ch: Chapter) => !excludedChapterIds.has(ch.id))
         .map((ch: Chapter) => ch.id)
-      const res = await batchGenerate.mutateAsync({ projectId, chapterIds: chapterIds.length > 0 ? chapterIds : undefined })
+      if (chapterIds.length === 0) {
+        message.warning('请至少选择一个章节')
+        return
+      }
+      await episodeApi.initFromChapters(projectId, chapterIds)
+      await refetchEpisodes()
+      const res = await batchGenerate.mutateAsync({ projectId, chapterIds })
       message.success(`批量生成已提交：${res.data?.totalRequested || 0} 个任务`)
       refetchEpisodes()
     } catch {
@@ -193,7 +200,7 @@ export default function ProjectDetailPage() {
     }
   }
 
-  // One-click: generate all → poll → render all → poll → notify
+  // One-click: init episodes → generate all → render all
   async function handleOneClickAll() {
     if (!projectId) return
     setOneClickLoading(true)
@@ -202,10 +209,25 @@ export default function ProjectDetailPage() {
         .filter((ch: Chapter) => !excludedChapterIds.has(ch.id))
         .map((ch: Chapter) => ch.id)
 
+      if (chapterIds.length === 0) {
+        message.warning('请至少选择一个章节')
+        setOneClickLoading(false)
+        return
+      }
+
+      message.info('正在初始化剧集...')
+      await episodeApi.initFromChapters(projectId, chapterIds)
+      await refetchEpisodes()
+
       message.info('正在批量生成剧本...')
-      const genRes = await batchGenerate.mutateAsync({ projectId, chapterIds: chapterIds.length > 0 ? chapterIds : undefined })
+      const genRes = await batchGenerate.mutateAsync({ projectId, chapterIds })
       const genTotal = genRes.data?.totalRequested || 0
-      message.info(`剧本生成已提交（${genTotal} 个任务），请等待完成后手动渲染视频`)
+
+      if (genTotal > 0) {
+        message.info(`剧本生成已提交（${genTotal} 个任务），完成后将自动渲染视频`)
+      } else {
+        message.warning('没有需要生成的剧本')
+      }
       refetchEpisodes()
     } catch {
       message.error('一键操作失败')

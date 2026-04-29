@@ -69,6 +69,11 @@ export const episodeApi = {
     return response.data
   },
 
+  initFromChapters: async (projectId: string, chapterIds: string[]): Promise<ApiResponse<Episode[]>> => {
+    const response = await apiClient.post(`/projects/${projectId}/episodes/init`, { chapterIds })
+    return response.data
+  },
+
   generateAll: async (projectId: string, chapterIds?: string[]): Promise<ApiResponse<BatchOperationResponse>> => {
     const response = await apiClient.post(`/projects/${projectId}/episodes/generate-all`, chapterIds ? { chapterIds } : {})
     return response.data

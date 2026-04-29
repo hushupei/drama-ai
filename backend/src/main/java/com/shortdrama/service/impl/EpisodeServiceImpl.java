@@ -1,8 +1,11 @@
 package com.shortdrama.service.impl;
 
+import com.shortdrama.entity.Chapter;
 import com.shortdrama.entity.Episode;
+import com.shortdrama.entity.Project;
 import com.shortdrama.exception.ResourceNotFoundException;
 import com.shortdrama.repository.EpisodeRepository;
+import com.shortdrama.service.ChapterService;
 import com.shortdrama.service.EpisodeService;
 import com.shortdrama.service.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +27,7 @@ public class EpisodeServiceImpl implements EpisodeService {
 
     private final EpisodeRepository episodeRepository;
     private final ProjectService projectService;
+    private final ChapterService chapterService;
 
     @Override
     @Transactional
@@ -124,5 +129,38 @@ public class EpisodeServiceImpl implements EpisodeService {
     @Override
     public long countByProjectIdAndStatus(UUID projectId, Episode.EpisodeStatus status) {
         return episodeRepository.countByProjectIdAndStatus(projectId, status);
+    }
+
+    @Override
+    @Transactional
+    public List<Episode> initFromChapters(UUID projectId, List<UUID> chapterIds) {
+        Project project = projectService.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", projectId.toString()));
+
+        int existingMaxNumber = episodeRepository.findByProjectIdOrderByEpisodeNumberAsc(projectId)
+                .stream().mapToInt(e -> e.getEpisodeNumber() != null ? e.getEpisodeNumber() : 0)
+                .max().orElse(0);
+
+        List<Episode> created = new ArrayList<>();
+        int nextNumber = existingMaxNumber + 1;
+
+        for (UUID chapterId : chapterIds) {
+            List<Episode> existing = episodeRepository.findByChapterId(chapterId);
+            if (!existing.isEmpty()) continue;
+
+            Chapter chapter = chapterService.findById(chapterId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Chapter", chapterId.toString()));
+
+            Episode episode = Episode.builder()
+                    .project(project)
+                    .chapter(chapter)
+                    .episodeNumber(nextNumber++)
+                    .title(chapter.getTitle())
+                    .status(Episode.EpisodeStatus.DRAFT)
+                    .build();
+            created.add(episodeRepository.save(episode));
+        }
+
+        return created;
     }
 }

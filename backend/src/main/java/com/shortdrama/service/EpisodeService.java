@@ -23,4 +23,5 @@ public interface EpisodeService {
     Episode updateAudioUrl(UUID id, String audioUrl);
     long countByProjectId(UUID projectId);
     long countByProjectIdAndStatus(UUID projectId, Episode.EpisodeStatus status);
+    List<Episode> initFromChapters(UUID projectId, List<UUID> chapterIds);
 }
