@@ -1,5 +1,7 @@
 package com.shortdrama.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Episode {
 
     @Id
@@ -24,6 +27,7 @@ public class Episode {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonBackReference("project-episodes")
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -42,7 +46,7 @@ public class Episode {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private EpisodeStatus status = EpisodeStatus.PENDING;
+    private EpisodeStatus status = EpisodeStatus.DRAFT;
 
     @Column(columnDefinition = "TEXT")
     private String scriptContent;
@@ -59,6 +63,18 @@ public class Episode {
     @Column
     private Integer wordCount;
 
+    @Column(length = 32)
+    private String failedStep;
+
+    @Column(columnDefinition = "TEXT")
+    private String errorMessage;
+
+    @Column
+    private Integer scriptWordCount;
+
+    @Column
+    private Integer videoDuration;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -71,6 +87,6 @@ public class Episode {
     private LocalDateTime completedAt;
 
     public enum EpisodeStatus {
-        PENDING, GENERATING_SCRIPT, GENERATING_SCENES, GENERATING_AUDIO, RENDERING_VIDEO, COMPLETED, FAILED
+        DRAFT, SCRIPT_GENERATING, SCRIPT_READY, VIDEO_GENERATING, COMPLETED, FAILED
     }
 }

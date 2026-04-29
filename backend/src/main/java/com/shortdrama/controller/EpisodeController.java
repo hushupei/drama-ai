@@ -2,9 +2,11 @@ package com.shortdrama.controller;
 
 import com.shortdrama.dto.request.CreateEpisodeRequest;
 import com.shortdrama.dto.response.ApiResponse;
+import com.shortdrama.dto.response.BatchOperationResponse;
 import com.shortdrama.entity.Chapter;
 import com.shortdrama.entity.Episode;
 import com.shortdrama.entity.Project;
+import com.shortdrama.service.BatchOperationService;
 import com.shortdrama.service.ChapterService;
 import com.shortdrama.service.EpisodeService;
 import com.shortdrama.service.ProjectService;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,6 +31,7 @@ public class EpisodeController {
     private final EpisodeService episodeService;
     private final ProjectService projectService;
     private final ChapterService chapterService;
+    private final BatchOperationService batchOperationService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Episode>> create(
@@ -51,7 +55,7 @@ public class EpisodeController {
                 .scriptContent(request.getScriptContent())
                 .duration(request.getDuration())
                 .wordCount(request.getWordCount())
-                .status(Episode.EpisodeStatus.PENDING)
+                .status(Episode.EpisodeStatus.DRAFT)
                 .build();
 
         Episode created = episodeService.createEpisode(episode);
@@ -117,6 +121,46 @@ public class EpisodeController {
         return ResponseEntity.ok(ApiResponse.success("Episode updated", updated));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<Episode>> patchEpisode(
+            @PathVariable UUID projectId,
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> updates) {
+        Episode episode = episodeService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Episode not found"));
+
+        if (updates.containsKey("scriptContent")) {
+            episode.setScriptContent((String) updates.get("scriptContent"));
+        }
+        if (updates.containsKey("title")) {
+            episode.setTitle((String) updates.get("title"));
+        }
+        if (updates.containsKey("status")) {
+            episode.setStatus(Episode.EpisodeStatus.valueOf((String) updates.get("status")));
+        }
+        if (updates.containsKey("failedStep")) {
+            episode.setFailedStep((String) updates.get("failedStep"));
+        }
+        if (updates.containsKey("errorMessage")) {
+            episode.setErrorMessage((String) updates.get("errorMessage"));
+        }
+        if (updates.containsKey("scriptWordCount")) {
+            episode.setScriptWordCount((Integer) updates.get("scriptWordCount"));
+        }
+        if (updates.containsKey("videoDuration")) {
+            episode.setVideoDuration((Integer) updates.get("videoDuration"));
+        }
+        if (updates.containsKey("videoUrl")) {
+            episode.setVideoUrl((String) updates.get("videoUrl"));
+        }
+        if (updates.containsKey("duration")) {
+            episode.setDuration((Integer) updates.get("duration"));
+        }
+
+        Episode updated = episodeService.updateEpisode(id, episode);
+        return ResponseEntity.ok(ApiResponse.success("Episode updated", updated));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable UUID projectId,
@@ -164,5 +208,33 @@ public class EpisodeController {
     public ResponseEntity<ApiResponse<Long>> count(@PathVariable UUID projectId) {
         long count = episodeService.countByProjectId(projectId);
         return ResponseEntity.ok(ApiResponse.success(count));
+    }
+
+    @PostMapping("/generate-all")
+    public ResponseEntity<ApiResponse<BatchOperationResponse>> generateAll(
+            @PathVariable UUID projectId) {
+        BatchOperationResponse response = batchOperationService.generateAll(projectId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/render-all")
+    public ResponseEntity<ApiResponse<BatchOperationResponse>> renderAll(
+            @PathVariable UUID projectId) {
+        BatchOperationResponse response = batchOperationService.renderAll(projectId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @DeleteMapping("/generate-all")
+    public ResponseEntity<ApiResponse<BatchOperationResponse>> cancelGenerateAll(
+            @PathVariable UUID projectId) {
+        BatchOperationResponse response = batchOperationService.cancelGenerateAll(projectId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @DeleteMapping("/render-all")
+    public ResponseEntity<ApiResponse<BatchOperationResponse>> cancelRenderAll(
+            @PathVariable UUID projectId) {
+        BatchOperationResponse response = batchOperationService.cancelRenderAll(projectId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

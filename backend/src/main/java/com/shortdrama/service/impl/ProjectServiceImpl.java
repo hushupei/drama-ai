@@ -5,6 +5,7 @@ import com.shortdrama.entity.Project;
 import com.shortdrama.exception.ResourceNotFoundException;
 import com.shortdrama.repository.EpisodeRepository;
 import com.shortdrama.repository.ProjectRepository;
+import com.shortdrama.service.NovelService;
 import com.shortdrama.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final EpisodeRepository episodeRepository;
+    private final NovelService novelService;
 
     @Override
     @Transactional
@@ -87,7 +89,46 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", id.toString()));
         project.setStatus(status);
-        return projectRepository.save(project);
+        project = projectRepository.save(project);
+        novelService.recalculateStatus(project.getNovel().getId());
+        return project;
+    }
+
+    @Override
+    @Transactional
+    public void recalculateStatus(UUID projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", projectId.toString()));
+        List<Episode> episodes = episodeRepository.findByProjectIdOrderByEpisodeNumberAsc(projectId);
+
+        if (episodes.isEmpty()) {
+            return;
+        }
+
+        boolean allCompleted = episodes.stream()
+                .allMatch(e -> e.getStatus() == Episode.EpisodeStatus.COMPLETED);
+        boolean allDraft = episodes.stream()
+                .allMatch(e -> e.getStatus() == Episode.EpisodeStatus.DRAFT);
+
+        Project.ProjectStatus newStatus;
+        if (allCompleted) {
+            if (project.getStatus() != Project.ProjectStatus.PUBLISHED) {
+                newStatus = Project.ProjectStatus.COMPLETED;
+            } else {
+                return; // PUBLISHED + all completed: no change
+            }
+        } else if (allDraft) {
+            newStatus = Project.ProjectStatus.DRAFT;
+        } else {
+            newStatus = Project.ProjectStatus.IN_PROGRESS; // handles PUBLISHED → IN_PROGRESS downgrade
+        }
+
+        if (project.getStatus() != newStatus) {
+            project.setStatus(newStatus);
+            projectRepository.save(project);
+        }
+
+        novelService.recalculateStatus(project.getNovel().getId());
     }
 
     @Override

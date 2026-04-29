@@ -17,6 +17,7 @@ import {
   PlayCircleOutlined,
   ReloadOutlined,
   EyeOutlined,
+  ProjectOutlined,
 } from '@ant-design/icons'
 import { useNovel, useChapters } from '@/hooks'
 import { taskApi } from '@/api/task'
@@ -96,7 +97,7 @@ export default function NovelDetailPage() {
     return item ? <Tag color={item.color}>{item.label}</Tag> : <Tag>{status}</Tag>
   }
 
-  const canParse = novel && (novel.status === 'UPLOADED' || novel.status === 'FAILED')
+  const canParse = novel && (novel.status === 'UPLOADED' || novel.status === 'PARSE_FAILED')
 
   const filteredChapters = chapters.filter((ch: Chapter) => {
     if (!searchText) return true
@@ -181,6 +182,12 @@ export default function NovelDetailPage() {
           </Descriptions>
           <div style={{ marginTop: 16 }}>
             <Space>
+              <Button
+                icon={<ProjectOutlined />}
+                onClick={() => navigate(`/projects?create=true&novelId=${novelId}`)}
+              >
+                基于此小说创建项目
+              </Button>
               {canParse && (
                 <Button
                   type="primary"

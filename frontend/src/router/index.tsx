@@ -11,8 +11,8 @@ import CharacterManagePage from '@/pages/character/CharacterManagePage'
 import EpisodeGeneratePage from '@/pages/episode/EpisodeGeneratePage'
 import VideoPreviewPage from '@/pages/episode/VideoPreviewPage'
 import ScriptDetailPage from '@/pages/episode/ScriptDetailPage'
-import ScriptListPage from '@/pages/episode/ScriptListPage'
-import VideoGalleryPage from '@/pages/episode/VideoGalleryPage'
+import DramaListPage from '@/pages/drama/DramaListPage'
+import DramaDetailPage from '@/pages/drama/DramaDetailPage'
 import TaskHistoryPage from '@/pages/task/TaskHistoryPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -61,8 +61,9 @@ export default function AppRouter() {
         <Route path="projects/:projectId/episodes/:episodeId/generate" element={<EpisodeGeneratePage />} />
         <Route path="projects/:projectId/episodes/:episodeId/preview" element={<VideoPreviewPage />} />
         <Route path="projects/:projectId/episodes/:episodeId/script" element={<ScriptDetailPage />} />
-        <Route path="scripts" element={<ScriptListPage />} />
-        <Route path="videos" element={<VideoGalleryPage />} />
+        <Route path="videos" element={<Navigate to="/dramas" replace />} />
+        <Route path="dramas" element={<DramaListPage />} />
+        <Route path="dramas/:id" element={<DramaDetailPage />} />
         <Route path="tasks/history" element={<TaskHistoryPage />} />
       </Route>
     </Routes>

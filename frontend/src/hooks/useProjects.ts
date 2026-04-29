@@ -52,3 +52,14 @@ export function useDeleteProject() {
     },
   })
 }
+
+export function usePublishProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, coverUrl }: { id: string; coverUrl?: string }) =>
+      projectApi.publishProject(id, coverUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}

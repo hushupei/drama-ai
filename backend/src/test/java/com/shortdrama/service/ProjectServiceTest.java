@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 class ProjectServiceTest {
 
     @Mock private ProjectRepository projectRepository;
+    @Mock private NovelService novelService;
     @InjectMocks private ProjectServiceImpl projectService;
 
     private Project testProject;

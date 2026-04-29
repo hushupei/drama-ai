@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Table, Button, Space, Popconfirm, Modal, Form, Input, Select } from 'antd'
+import { Table, Button, Space, Popconfirm, Modal, Form, Input, Select, Tag, Progress } from 'antd'
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useProjects, useDeleteProject, useCreateProject, useNovels } from '@/hooks'
@@ -54,6 +54,31 @@ export default function ProjectListPage() {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
+      render: (status: string) => {
+        const statusMap: Record<string, { label: string; color: string }> = {
+          DRAFT: { label: '草稿', color: 'default' },
+          IN_PROGRESS: { label: '进行中', color: 'blue' },
+          COMPLETED: { label: '已完成', color: 'green' },
+          PUBLISHED: { label: '已发布', color: 'purple' },
+          ARCHIVED: { label: '已归档', color: 'red' },
+        }
+        const item = statusMap[status]
+        return item ? <Tag color={item.color}>{item.label}</Tag> : <Tag>{status}</Tag>
+      },
+    },
+    {
+      title: '进度',
+      key: 'progress',
+      render: (_: unknown, record: Project) => {
+        const total = record.totalEpisodes || record.episodes?.length || 0
+        const completed = record.episodes?.filter((ep) => ep.status === 'COMPLETED').length || 0
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0
+        return (
+          <div style={{ minWidth: 120 }}>
+            <Progress percent={percent} size="small" format={() => `${completed}/${total}`} />
+          </div>
+        )
+      },
     },
     {
       title: '创建时间',

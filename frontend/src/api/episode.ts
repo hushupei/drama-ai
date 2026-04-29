@@ -1,5 +1,5 @@
 import apiClient, { aiClient } from './client'
-import type { Episode, ApiResponse, PageRequest } from '@/types'
+import type { Episode, ApiResponse, PageRequest, BatchOperationResponse } from '@/types'
 
 export interface CreateEpisodeRequest {
   projectId: string
@@ -13,7 +13,7 @@ export interface UpdateEpisodeRequest {
   scriptContent?: string
   videoUrl?: string
   duration?: number
-  status?: 'PENDING' | 'GENERATING_SCRIPT' | 'GENERATING_SCENES' | 'GENERATING_AUDIO' | 'RENDERING_VIDEO' | 'COMPLETED' | 'FAILED'
+  status?: 'DRAFT' | 'SCRIPT_GENERATING' | 'SCRIPT_READY' | 'VIDEO_GENERATING' | 'COMPLETED' | 'FAILED'
 }
 
 export interface GenerateScriptRequest {
@@ -66,6 +66,16 @@ export const episodeApi = {
 
   renderVideo: async (data: RenderVideoRequest): Promise<{ task_id: string; status: string; message: string }> => {
     const response = await aiClient.post('/tasks/render', data)
+    return response.data
+  },
+
+  generateAll: async (projectId: string, chapterIds?: string[]): Promise<ApiResponse<BatchOperationResponse>> => {
+    const response = await apiClient.post(`/projects/${projectId}/episodes/generate-all`, chapterIds ? { chapterIds } : {})
+    return response.data
+  },
+
+  renderAll: async (projectId: string): Promise<ApiResponse<BatchOperationResponse>> => {
+    const response = await apiClient.post(`/projects/${projectId}/episodes/render-all`)
     return response.data
   },
 

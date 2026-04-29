@@ -18,6 +18,7 @@ public interface ProjectService {
     List<Project> findByNovelId(UUID novelId);
     List<Project> findByUserIdAndStatus(UUID userId, Project.ProjectStatus status);
     Project updateStatus(UUID id, Project.ProjectStatus status);
+    void recalculateStatus(UUID projectId);
     long countByUserId(UUID userId);
     long countByNovelId(UUID novelId);
 }

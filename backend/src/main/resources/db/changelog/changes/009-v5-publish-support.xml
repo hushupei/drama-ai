@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="009-1" author="v5">
+        <comment>Add published_at and cover_url columns to projects table for V5 publish flow</comment>
+        <addColumn tableName="projects">
+            <column name="published_at" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="projects">
+            <column name="cover_url" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="projects" columnName="published_at"/>
+            <dropColumn tableName="projects" columnName="cover_url"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="009-2" author="v5">
+        <comment>Add PUBLISHED to projects status enum for V5 publish flow</comment>
+        <sql>
+            ALTER TABLE projects MODIFY COLUMN status ENUM('DRAFT','IN_PROGRESS','COMPLETED','ARCHIVED','PUBLISHED') NOT NULL
+        </sql>
+        <rollback>
+            ALTER TABLE projects MODIFY COLUMN status ENUM('DRAFT','IN_PROGRESS','COMPLETED','ARCHIVED') NOT NULL
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

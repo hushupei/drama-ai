@@ -14,7 +14,7 @@ export interface Novel {
   author: string
   description: string | null
   filePath: string
-  status: 'UPLOADED' | 'PARSING' | 'PARSED' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  status: 'UPLOADED' | 'PARSING' | 'PARSED' | 'PARSE_FAILED' | 'PROCESSING' | 'COMPLETED'
   userId: string
   createdAt: string
   updatedAt: string
@@ -35,9 +35,9 @@ export interface Character {
   novelId: string
   name: string
   description: string | null
-  personalityTags: string[] | null
+  personality: string | null
   avatarUrl: string | null
-  status: 'draft' | 'confirmed'
+  status: 'ACTIVE' | 'INACTIVE'
   createdAt: string
   updatedAt: string
 }
@@ -46,11 +46,14 @@ export interface Project {
   id: string
   displayId: string
   name: string
-  type: 'episode' | 'series'
-  status: 'draft' | 'in_progress' | 'completed' | 'archived'
+  type: 'SINGLE_EPISODE' | 'MULTI_EPISODE' | 'SERIES'
+  status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED'
   userId: string
   novelId: string
   episodes?: Episode[]
+  publishedAt: string | null
+  coverUrl: string | null
+  totalEpisodes?: number
   createdAt: string
   updatedAt: string
 }
@@ -63,7 +66,9 @@ export interface Episode {
   scriptContent: string | null
   videoUrl: string | null
   duration: number | null
-  status: 'PENDING' | 'GENERATING_SCRIPT' | 'GENERATING_SCENES' | 'GENERATING_AUDIO' | 'RENDERING_VIDEO' | 'COMPLETED' | 'FAILED'
+  status: 'DRAFT' | 'SCRIPT_GENERATING' | 'SCRIPT_READY' | 'VIDEO_GENERATING' | 'COMPLETED' | 'FAILED'
+  failedStep?: 'script_generation' | 'video_rendering' | null
+  errorMessage?: string | null
   chapter?: { title?: string } | null
   createdAt: string
   updatedAt: string
@@ -124,4 +129,43 @@ export interface Page<T> {
   }
   numberOfElements: number
   empty: boolean
+}
+
+export interface Drama {
+  id: string
+  name: string
+  author: string
+  description: string
+  coverUrl: string
+  episodeCount: number
+  totalDuration: number
+  publishedAt: string
+  episodes: DramaEpisode[]
+}
+
+export interface DramaEpisode {
+  id: string
+  episodeNumber: number
+  title: string
+  duration: number
+  videoUrl: string
+}
+
+export interface BatchOperationResponse {
+  totalRequested: number
+  succeeded: number
+  failed: number
+  results: BatchResult[]
+}
+
+export interface BatchResult {
+  episodeId: string
+  episodeNumber: number
+  status: 'SUCCESS' | 'FAILURE'
+  taskId?: string
+  error?: string
+}
+
+export interface ChapterWithSelection extends Chapter {
+  included: boolean
 }

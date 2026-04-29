@@ -101,6 +101,27 @@ export function useRenderVideo() {
   })
 }
 
+export function useBatchGenerate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ projectId, chapterIds }: { projectId: string; chapterIds?: string[] }) =>
+      episodeApi.generateAll(projectId, chapterIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['episodes'] })
+    },
+  })
+}
+
+export function useBatchRender() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (projectId: string) => episodeApi.renderAll(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['episodes'] })
+    },
+  })
+}
+
 export function useVideoPreviewUrl(videoUrl: string): string {
   return episodeApi.previewVideo(videoUrl)
 }

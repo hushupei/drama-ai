@@ -12,5 +12,7 @@
     <include file="db/changelog/changes/005-create-projects-table.xml"/>
     <include file="db/changelog/changes/006-create-episodes-table.xml"/>
     <include file="db/changelog/changes/007-add-display-ids.xml"/>
+    <include file="db/changelog/changes/008-v4-entity-states.xml"/>
+    <include file="db/changelog/changes/009-v5-publish-support.xml"/>
 
 </databaseChangeLog>

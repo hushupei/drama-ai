@@ -36,4 +36,12 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     long countByUserId(UUID userId);
 
     long countByNovelId(UUID novelId);
+
+    @Query("SELECT p FROM Project p LEFT JOIN FETCH p.novel LEFT JOIN FETCH p.user WHERE p.id = :id")
+    Optional<Project> findByIdWithNovel(@Param("id") UUID id);
+
+    Page<Project> findByStatus(Project.ProjectStatus status, Pageable pageable);
+
+    @Query("SELECT p FROM Project p LEFT JOIN FETCH p.novel LEFT JOIN FETCH p.user WHERE p.status = :status AND LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Project> findByStatusAndNameKeyword(@Param("status") Project.ProjectStatus status, @Param("keyword") String keyword, Pageable pageable);
 }

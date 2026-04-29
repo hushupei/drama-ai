@@ -4,6 +4,7 @@ import com.shortdrama.entity.Episode;
 import com.shortdrama.exception.ResourceNotFoundException;
 import com.shortdrama.repository.EpisodeRepository;
 import com.shortdrama.service.EpisodeService;
+import com.shortdrama.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class EpisodeServiceImpl implements EpisodeService {
 
     private final EpisodeRepository episodeRepository;
+    private final ProjectService projectService;
 
     @Override
     @Transactional
@@ -91,7 +93,9 @@ public class EpisodeServiceImpl implements EpisodeService {
         if (status == Episode.EpisodeStatus.COMPLETED) {
             episode.setCompletedAt(LocalDateTime.now());
         }
-        return episodeRepository.save(episode);
+        episode = episodeRepository.save(episode);
+        projectService.recalculateStatus(episode.getProject().getId());
+        return episode;
     }
 
     @Override

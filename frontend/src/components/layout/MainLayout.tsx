@@ -1,6 +1,6 @@
 import { Layout, Menu, Button, Avatar, Dropdown } from 'antd'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { BookOutlined, ProjectOutlined, UserOutlined, LogoutOutlined, ClockCircleOutlined, ReadOutlined, PlayCircleOutlined } from '@ant-design/icons'
+import { BookOutlined, ProjectOutlined, UserOutlined, LogoutOutlined, ClockCircleOutlined, PlayCircleOutlined } from '@ant-design/icons'
 import { useAuthStore } from '@/stores'
 
 const { Header, Sider, Content } = Layout
@@ -22,14 +22,9 @@ export default function MainLayout() {
       label: '项目管理',
     },
     {
-      key: '/scripts',
-      icon: <ReadOutlined />,
-      label: '剧本管理',
-    },
-    {
-      key: '/videos',
+      key: '/dramas',
       icon: <PlayCircleOutlined />,
-      label: '视频作品',
+      label: '短剧作品',
     },
     {
       key: '/tasks/history',
@@ -53,8 +48,7 @@ export default function MainLayout() {
   function getSelectedKey() {
     if (location.pathname.startsWith('/novels')) return '/novels'
     if (location.pathname.startsWith('/projects')) return '/projects'
-    if (location.pathname.startsWith('/scripts')) return '/scripts'
-    if (location.pathname.startsWith('/videos')) return '/videos'
+    if (location.pathname.startsWith('/dramas')) return '/dramas'
     if (location.pathname.startsWith('/tasks')) return '/tasks/history'
     return ''
   }

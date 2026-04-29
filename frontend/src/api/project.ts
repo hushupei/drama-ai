@@ -26,6 +26,11 @@ export const projectApi = {
     return response.data
   },
 
+  publishProject: async (id: string, coverUrl?: string): Promise<ApiResponse<Project>> => {
+    const response = await apiClient.post(`/projects/${id}/publish`, coverUrl ? { coverUrl } : {})
+    return response.data
+  },
+
   getEpisodes: async (
     projectId: string,
     params?: PageRequest,

@@ -1,5 +1,6 @@
 package com.shortdrama.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -59,6 +60,12 @@ public class Project {
     @Column
     private Integer targetDuration;
 
+    @Column
+    private LocalDateTime publishedAt;
+
+    @Column(length = 500)
+    private String coverUrl;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -69,6 +76,7 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonManagedReference("project-episodes")
     private List<Episode> episodes = new ArrayList<>();
 
     @PrePersist
@@ -81,7 +89,7 @@ public class Project {
     }
 
     public enum ProjectStatus {
-        DRAFT, IN_PROGRESS, COMPLETED, ARCHIVED
+        DRAFT, IN_PROGRESS, COMPLETED, PUBLISHED, ARCHIVED
     }
 
     public enum ProjectType {

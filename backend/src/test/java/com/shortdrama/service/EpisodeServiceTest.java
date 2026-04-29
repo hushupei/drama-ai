@@ -2,7 +2,6 @@ package com.shortdrama.service;
 
 import com.shortdrama.entity.Episode;
 import com.shortdrama.entity.Project;
-import com.shortdrama.exception.ResourceNotFoundException;
 import com.shortdrama.repository.EpisodeRepository;
 import com.shortdrama.service.impl.EpisodeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +24,7 @@ import static org.mockito.Mockito.*;
 class EpisodeServiceTest {
 
     @Mock private EpisodeRepository episodeRepository;
+    @Mock private ProjectService projectService;
     @InjectMocks private EpisodeServiceImpl episodeService;
 
     private Episode testEpisode;
@@ -42,7 +42,7 @@ class EpisodeServiceTest {
                 .episodeNumber(1)
                 .title("Episode 1")
                 .description("Test Episode")
-                .status(Episode.EpisodeStatus.PENDING)
+                .status(Episode.EpisodeStatus.DRAFT)
                 .build();
     }
 
