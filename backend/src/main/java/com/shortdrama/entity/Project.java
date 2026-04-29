@@ -1,6 +1,8 @@
 package com.shortdrama.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,10 +34,12 @@ public class Project {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "novel_id", nullable = false)
+    @JsonIgnore
     private Novel novel;
 
     @Column(nullable = false, length = 255)
@@ -86,6 +90,16 @@ public class Project {
             String randomPart = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
             this.displayId = "PRJ-" + datePart + "-" + randomPart;
         }
+    }
+
+    @JsonProperty("userId")
+    public UUID resolveUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    @JsonProperty("novelId")
+    public UUID resolveNovelId() {
+        return novel != null ? novel.getId() : null;
     }
 
     public enum ProjectStatus {
