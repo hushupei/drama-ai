@@ -1,6 +1,7 @@
 package com.shortdrama.controller;
 
 import com.shortdrama.dto.request.CreateEpisodeRequest;
+import com.shortdrama.dto.request.InitEpisodesRequest;
 import com.shortdrama.dto.response.ApiResponse;
 import com.shortdrama.dto.response.BatchOperationResponse;
 import com.shortdrama.entity.Chapter;
@@ -65,8 +66,8 @@ public class EpisodeController {
     @PostMapping("/init")
     public ResponseEntity<ApiResponse<List<Episode>>> initFromChapters(
             @PathVariable UUID projectId,
-            @RequestBody Map<String, List<UUID>> body) {
-        List<UUID> chapterIds = body.getOrDefault("chapterIds", List.of());
+            @RequestBody InitEpisodesRequest body) {
+        List<UUID> chapterIds = body.getChapterIds() != null ? body.getChapterIds() : List.of();
         List<Episode> episodes = episodeService.initFromChapters(projectId, chapterIds);
         return ResponseEntity.ok(ApiResponse.success(episodes));
     }
