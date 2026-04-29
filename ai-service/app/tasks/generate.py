@@ -2,6 +2,7 @@
 import json
 import time
 from celery import shared_task
+from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.task_logger import task_logger
 from app.services.llm_service import llm_service
@@ -72,6 +73,9 @@ def generate_script_task(
 
     try:
         logger.info(f"Starting script generation: chapter={chapter_id}, episode={episode_id}")
+
+        if not settings.OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY 未配置，请在 .env 文件中设置有效的 OpenAI API Key")
 
         # Update episode status to SCRIPT_GENERATING
         backend_client.update_episode_status(project_id, episode_id, "SCRIPT_GENERATING")
