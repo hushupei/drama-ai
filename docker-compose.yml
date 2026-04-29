@@ -98,6 +98,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-min-32-chars-long}
       AI_SERVICE_URL: http://ai-service:8000
       SERVICE_API_TOKEN: ${SERVICE_API_TOKEN:-internal-dev-token}
+      TZ: Asia/Shanghai
+      JAVA_OPTS: "-Duser.timezone=Asia/Shanghai"
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: Asia/Shanghai
     ports:
       - "8080:8080"
     depends_on:
