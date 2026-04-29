@@ -1,8 +1,10 @@
 package com.shortdrama.service.impl;
 
 import com.shortdrama.entity.Novel;
+import com.shortdrama.entity.Project;
 import com.shortdrama.exception.ResourceNotFoundException;
 import com.shortdrama.repository.NovelRepository;
+import com.shortdrama.repository.ProjectRepository;
 import com.shortdrama.service.NovelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class NovelServiceImpl implements NovelService {
 
     private final NovelRepository novelRepository;
+    private final ProjectRepository projectRepository;
 
     @Override
     @Transactional
@@ -90,5 +93,36 @@ public class NovelServiceImpl implements NovelService {
     @Override
     public long countByUserId(UUID userId) {
         return novelRepository.countByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public void recalculateStatus(UUID novelId) {
+        Novel novel = novelRepository.findById(novelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Novel", novelId.toString()));
+        List<Project> projects = projectRepository.findByNovelId(novelId);
+
+        if (projects.isEmpty()) {
+            return;
+        }
+
+        boolean allCompleted = projects.stream()
+                .allMatch(p -> p.getStatus() == Project.ProjectStatus.COMPLETED);
+        boolean anyProcessing = projects.stream()
+                .anyMatch(p -> p.getStatus() == Project.ProjectStatus.IN_PROGRESS);
+
+        Novel.NovelStatus newStatus;
+        if (allCompleted) {
+            newStatus = Novel.NovelStatus.COMPLETED;
+        } else if (anyProcessing) {
+            newStatus = Novel.NovelStatus.PROCESSING;
+        } else {
+            return;
+        }
+
+        if (novel.getStatus() != newStatus) {
+            novel.setStatus(newStatus);
+            novelRepository.save(novel);
+        }
     }
 }

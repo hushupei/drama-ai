@@ -19,4 +19,5 @@ public interface NovelService {
     Novel updateStatus(UUID id, Novel.NovelStatus status);
     Novel updateMetadata(UUID id, String metadata);
     long countByUserId(UUID userId);
+    void recalculateStatus(UUID novelId);
 }

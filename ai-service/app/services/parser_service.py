@@ -104,10 +104,10 @@ class ParserService:
                     if current_chapter and current_content:
                         chapters.append({
                             "id": str(uuid.uuid4()),
-                            "chapter_number": chapter_number,
+                            "chapterNumber": chapter_number,
                             "title": current_chapter,
                             "content": '\n'.join(current_content).strip(),
-                            "word_count": sum(len(s) for s in current_content)
+                            "wordCount": sum(len(s) for s in current_content)
                         })
 
                     # Start new chapter
@@ -124,20 +124,20 @@ class ParserService:
         if current_chapter and current_content:
             chapters.append({
                 "id": str(uuid.uuid4()),
-                "chapter_number": chapter_number,
+                "chapterNumber": chapter_number,
                 "title": current_chapter,
                 "content": '\n'.join(current_content).strip(),
-                "word_count": sum(len(s) for s in current_content)
+                "wordCount": sum(len(s) for s in current_content)
             })
 
         # If no chapters found, treat as single chapter
         if not chapters:
             chapters = [{
                 "id": str(uuid.uuid4()),
-                "chapter_number": 1,
+                "chapterNumber": 1,
                 "title": "第一章",
                 "content": content,
-                "word_count": len(content)
+                "wordCount": len(content)
             }]
 
         return chapters
@@ -164,10 +164,10 @@ class ParserService:
 
             chapters.append({
                 "id": str(uuid.uuid4()),
-                "chapter_number": ch.get("chapter_number", i + 1),
+                "chapterNumber": ch.get("chapter_number", i + 1),
                 "title": ch.get("title", f"第{i + 1}章"),
                 "content": chapter_content,
-                "word_count": len(chapter_content.replace(" ", "").replace("\n", ""))
+                "wordCount": len(chapter_content.replace(" ", "").replace("\n", ""))
             })
 
         return chapters
@@ -195,10 +195,10 @@ class ParserService:
                 characters.append({
                     "id": str(uuid.uuid4()),
                     "name": name,
-                    "aliases": [],
                     "description": None,
-                    "personality_tags": [],
-                    "appearance_count": count
+                    "personality": None,
+                    "appearance": None,
+                    "gender": None
                 })
 
         return characters[:20]  # Limit to 20 characters
@@ -216,10 +216,10 @@ class ParserService:
             characters.append({
                 "id": str(uuid.uuid4()),
                 "name": char_data.get("name", "Unknown"),
-                "aliases": char_data.get("aliases", []),
                 "description": char_data.get("description"),
-                "personality_tags": char_data.get("personality_tags", []),
-                "appearance_count": char_data.get("appearance_count", 0)
+                "personality": ", ".join(char_data.get("personality_tags", [])) if char_data.get("personality_tags") else None,
+                "appearance": char_data.get("appearance"),
+                "gender": char_data.get("gender")
             })
 
         return characters

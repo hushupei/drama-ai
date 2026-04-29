@@ -58,8 +58,11 @@ export default function VideoGalleryPage() {
           {videos.map((v) => {
             const previewUrl = useVideoPreviewUrl(v.videoUrl)
             const statusMap: Record<string, { label: string; color: string }> = {
+              DRAFT: { label: '草稿', color: 'default' },
+              SCRIPT_GENERATING: { label: '剧本生成中', color: 'processing' },
+              SCRIPT_READY: { label: '剧本就绪', color: 'success' },
+              VIDEO_GENERATING: { label: '视频生成中', color: 'warning' },
               COMPLETED: { label: '已完成', color: 'success' },
-              RENDERING_VIDEO: { label: '渲染中', color: 'warning' },
               FAILED: { label: '失败', color: 'error' },
             }
             return (

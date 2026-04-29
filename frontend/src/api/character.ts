@@ -5,16 +5,16 @@ export interface CreateCharacterRequest {
   novelId: string
   name: string
   description?: string
-  personalityTags?: string[]
+  personality?: string
   avatarUrl?: string
 }
 
 export interface UpdateCharacterRequest {
   name?: string
   description?: string
-  personalityTags?: string[]
+  personality?: string
   avatarUrl?: string
-  status?: 'draft' | 'confirmed'
+  status?: 'ACTIVE' | 'INACTIVE'
 }
 
 export const characterApi = {

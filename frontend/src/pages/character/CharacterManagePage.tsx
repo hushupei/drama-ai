@@ -34,7 +34,7 @@ import type { Character } from '@/types'
 interface CharacterFormValues {
   name: string
   description?: string
-  personalityTags?: string
+  personality?: string
   avatarUrl?: string
 }
 
@@ -62,7 +62,7 @@ export default function CharacterManagePage() {
     form.setFieldsValue({
       name: character.name,
       description: character.description || '',
-      personalityTags: character.personalityTags?.join(', ') || '',
+      personality: character.personality || '',
       avatarUrl: character.avatarUrl || '',
     })
     setIsModalOpen(true)
@@ -74,9 +74,7 @@ export default function CharacterManagePage() {
         novelId: novelId || '',
         name: values.name,
         description: values.description,
-        personalityTags: values.personalityTags
-          ? values.personalityTags.split(',').map((t) => t.trim())
-          : [],
+        personality: values.personality,
         avatarUrl: values.avatarUrl,
       }
 
@@ -136,26 +134,19 @@ export default function CharacterManagePage() {
       ellipsis: true,
     },
     {
-      title: '性格标签',
-      key: 'personalityTags',
-      render: (_: unknown, record: Character) => (
-        <Space wrap>
-          {record.personalityTags?.map((tag) => (
-            <Tag key={tag} color="blue">
-              {tag}
-            </Tag>
-          ))}
-        </Space>
-      ),
+      title: '性格',
+      dataIndex: 'personality',
+      key: 'personality',
+      ellipsis: true,
     },
     {
       title: '状态',
       key: 'status',
       render: (_: unknown, record: Character) =>
-        record.status === 'confirmed' ? (
-          <Tag color="success">已确认</Tag>
+        record.status === 'ACTIVE' ? (
+          <Tag color="success">已激活</Tag>
         ) : (
-          <Tag color="warning">草稿</Tag>
+          <Tag color="warning">未激活</Tag>
         ),
     },
     {
@@ -169,7 +160,7 @@ export default function CharacterManagePage() {
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           />
-          {record.status === 'draft' && (
+          {record.status === 'INACTIVE' && (
             <Button
               type="text"
               icon={<CheckCircleOutlined />}
@@ -244,8 +235,8 @@ export default function CharacterManagePage() {
             <Input.TextArea rows={3} placeholder="请输入角色描述" />
           </Form.Item>
 
-          <Form.Item name="personalityTags" label="性格标签">
-            <Input placeholder="多个标签用逗号分隔，如：勇敢,聪明,善良" />
+          <Form.Item name="personality" label="性格描述">
+            <Input placeholder="如：勇敢、聪明、善良" />
           </Form.Item>
 
           <Form.Item name="avatarUrl" label="头像URL">

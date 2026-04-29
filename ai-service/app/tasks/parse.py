@@ -42,6 +42,9 @@ def parse_novel_task(self, novel_id: str, storage_path: str, use_llm: bool = Tru
     try:
         logger.info(f"Starting novel parsing for {novel_id}")
 
+        # Update status to PARSING
+        backend_client.update_novel_status(novel_id, "PARSING")
+
         # Download file from MinIO
         file_content = minio_storage.download_file(storage_path)
         content, encoding_used = _decode_content(file_content)
@@ -69,7 +72,7 @@ def parse_novel_task(self, novel_id: str, storage_path: str, use_llm: bool = Tru
                 backend_client.create_character(novel_id, character)
 
             # Update novel status
-            backend_client.update_novel_status(novel_id, "parsed")
+            backend_client.update_novel_status(novel_id, "PARSED")
 
         except Exception as e:
             logger.error(f"Failed to save parsing results to backend: {e}")
@@ -95,4 +98,5 @@ def parse_novel_task(self, novel_id: str, storage_path: str, use_llm: bool = Tru
         logger.error(f"Novel parsing failed: {exc}")
         duration_ms = int((time.time() - start_time) * 1000)
         task_logger.log_task_failure(task_id, task_name, str(exc), duration_ms)
+        backend_client.update_novel_status(novel_id, "PARSE_FAILED")
         self.retry(exc=exc, countdown=60)

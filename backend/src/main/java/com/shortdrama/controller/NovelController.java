@@ -44,7 +44,7 @@ public class NovelController {
             @RequestParam(value = "description", required = false) String description,
             @RequestParam("file") MultipartFile file,
             Authentication authentication) throws IOException {
-        UUID userId = (UUID) authentication.getCredentials();
+        UUID userId = resolveUserId(authentication);
         User user = userService.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -82,7 +82,7 @@ public class NovelController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
             Authentication authentication) {
-        UUID userId = (UUID) authentication.getCredentials();
+        UUID userId = resolveUserId(authentication);
         String[] sortParams = sort.split(",");
         Sort sortObj = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);
         Pageable pageable = PageRequest.of(page, size, sortObj);
@@ -148,5 +148,16 @@ public class NovelController {
             sanitized = sanitized.substring(0, 200);
         }
         return sanitized;
+    }
+
+    private UUID resolveUserId(Authentication authentication) {
+        Object credentials = authentication.getCredentials();
+        if (credentials instanceof UUID uuid) {
+            return uuid;
+        }
+        String username = authentication.getName();
+        return userService.findByUsername(username)
+                .map(User::getId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
     }
 }

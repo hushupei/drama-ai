@@ -73,6 +73,9 @@ def generate_script_task(
     try:
         logger.info(f"Starting script generation: chapter={chapter_id}, episode={episode_id}")
 
+        # Update episode status to SCRIPT_GENERATING
+        backend_client.update_episode_status(project_id, episode_id, "SCRIPT_GENERATING")
+
         # 1. Fetch chapter content from backend
         chapter = backend_client.get_chapter(novel_id, chapter_id)
         if not chapter:
@@ -127,7 +130,7 @@ def generate_script_task(
         # 6. Save script to backend
         update_data = {
             "scriptContent": json.dumps(script, ensure_ascii=False),
-            "status": "script_generated",
+            "status": "SCRIPT_READY",
             "title": script.get("title", ""),
         }
         saved = backend_client.update_episode_script(project_id, episode_id, update_data)
@@ -152,11 +155,16 @@ def generate_script_task(
             fallback_script = _generate_fallback(chapter_id, style, character_count)
             update_data = {
                 "scriptContent": json.dumps(fallback_script, ensure_ascii=False),
-                "status": "script_generated",
+                "status": "SCRIPT_READY",
             }
             backend_client.update_episode_script(project_id, episode_id, update_data)
             return fallback_script
         except Exception:
+            backend_client.update_episode_status(
+                project_id, episode_id, "FAILED",
+                failed_step="script_generation",
+                error_message=str(exc)[:500]
+            )
             self.retry(exc=exc, countdown=60)
 
 

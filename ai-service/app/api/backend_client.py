@@ -33,10 +33,17 @@ class BackendClient:
     def create_chapter(self, novel_id: str, chapter: Dict) -> bool:
         """Create a chapter in the backend"""
         try:
+            payload = {
+                "novelId": novel_id,
+                "title": chapter.get("title", ""),
+                "chapterNumber": chapter.get("chapterNumber", 1),
+                "wordCount": chapter.get("wordCount", 0),
+                "content": chapter.get("content", ""),
+            }
             with self._get_sync_client() as client:
                 response = client.post(
                     f"{self.base_url}/api/novels/{novel_id}/chapters",
-                    json=chapter
+                    json=payload
                 )
                 if response.status_code == 200:
                     logger.debug(f"Chapter created: {chapter.get('title')}")
@@ -51,10 +58,17 @@ class BackendClient:
     def create_character(self, novel_id: str, character: Dict) -> bool:
         """Create a character in the backend"""
         try:
+            payload = {
+                "name": character.get("name", ""),
+                "description": character.get("description"),
+                "personality": character.get("personality"),
+                "appearance": character.get("appearance"),
+                "gender": character.get("gender"),
+            }
             with self._get_sync_client() as client:
                 response = client.post(
                     f"{self.base_url}/api/novels/{novel_id}/characters",
-                    json=character
+                    json=payload
                 )
                 if response.status_code == 200:
                     logger.debug(f"Character created: {character.get('name')}")
@@ -66,13 +80,14 @@ class BackendClient:
             logger.error(f"Error creating character: {e}")
             return False
 
-    def update_novel_status(self, novel_id: str, status: str) -> bool:
+    def update_novel_status(self, novel_id: str, status: str, error_message: str = None) -> bool:
         """Update novel parsing status"""
         try:
+            params = {"status": status}
             with self._get_sync_client() as client:
                 response = client.patch(
                     f"{self.base_url}/api/novels/{novel_id}/status",
-                    params={"status": status}
+                    params=params
                 )
                 if response.status_code == 200:
                     logger.info(f"Novel {novel_id} status updated to {status}")
@@ -161,6 +176,31 @@ class BackendClient:
                 return False
         except Exception as e:
             logger.error(f"Error updating episode script: {e}")
+            return False
+
+    def update_episode_status(
+        self, project_id: str, episode_id: str, status: str,
+        failed_step: str = None, error_message: str = None
+    ) -> bool:
+        """Update episode status with optional error details"""
+        try:
+            payload = {"status": status}
+            if failed_step:
+                payload["failedStep"] = failed_step
+            if error_message:
+                payload["errorMessage"] = error_message
+            with self._get_sync_client() as client:
+                response = client.patch(
+                    f"{self.base_url}/api/projects/{project_id}/episodes/{episode_id}",
+                    json=payload
+                )
+                if response.status_code == 200:
+                    logger.info(f"Episode {episode_id} status updated to {status}")
+                    return True
+                logger.error(f"Failed to update episode status: {response.status_code}")
+                return False
+        except Exception as e:
+            logger.error(f"Error updating episode status: {e}")
             return False
 
 

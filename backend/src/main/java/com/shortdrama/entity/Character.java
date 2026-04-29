@@ -1,5 +1,6 @@
 package com.shortdrama.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,6 +25,7 @@ public class Character {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "novel_id", nullable = false)
+    @JsonBackReference("novel-characters")
     private Novel novel;
 
     @Column(nullable = false, length = 100)

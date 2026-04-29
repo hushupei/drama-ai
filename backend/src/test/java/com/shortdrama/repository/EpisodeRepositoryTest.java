@@ -83,7 +83,7 @@ class EpisodeRepositoryTest {
                 .episodeNumber(1)
                 .title("Episode 1")
                 .description("First episode")
-                .status(Episode.EpisodeStatus.PENDING)
+                .status(Episode.EpisodeStatus.DRAFT)
                 .duration(60)
                 .wordCount(100)
                 .build();
@@ -108,7 +108,7 @@ class EpisodeRepositoryTest {
                 .project(testProject)
                 .episodeNumber(2)
                 .title("Episode 2")
-                .status(Episode.EpisodeStatus.PENDING)
+                .status(Episode.EpisodeStatus.DRAFT)
                 .build();
         episodeRepository.save(episode2);
 
@@ -143,7 +143,7 @@ class EpisodeRepositoryTest {
         episodeRepository.save(completedEpisode);
 
         List<Episode> pendingEpisodes = episodeRepository.findByProjectAndStatus(
-                testProject, Episode.EpisodeStatus.PENDING);
+                testProject, Episode.EpisodeStatus.DRAFT);
 
         assertThat(pendingEpisodes).hasSize(1);
         assertThat(pendingEpisodes.get(0).getTitle()).isEqualTo("Episode 1");
@@ -175,7 +175,7 @@ class EpisodeRepositoryTest {
         episodeRepository.save(testEpisode);
 
         long count = episodeRepository.countByProjectAndStatus(
-                testProject, Episode.EpisodeStatus.PENDING);
+                testProject, Episode.EpisodeStatus.DRAFT);
 
         assertThat(count).isEqualTo(1);
     }

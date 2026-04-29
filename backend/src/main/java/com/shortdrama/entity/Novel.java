@@ -1,6 +1,7 @@
 package com.shortdrama.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -67,6 +68,9 @@ public class Novel {
     @Column
     private Integer totalWords;
 
+    @Column(columnDefinition = "TEXT")
+    private String errorMessage;
+
     @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
@@ -80,10 +84,12 @@ public class Novel {
 
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonManagedReference("novel-chapters")
     private List<Chapter> chapters = new ArrayList<>();
 
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonManagedReference("novel-characters")
     private List<Character> characters = new ArrayList<>();
 
     @PrePersist
@@ -99,6 +105,7 @@ public class Novel {
         UPLOADED,
         PARSING,
         PARSED,
+        PARSE_FAILED,
         PROCESSING,
         COMPLETED
     }

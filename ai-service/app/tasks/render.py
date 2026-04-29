@@ -42,6 +42,9 @@ def render_video_task(
     try:
         logger.info(f"Starting video rendering: episode={episode_id}, resolution={resolution}")
 
+        # Update episode status to VIDEO_GENERATING
+        backend_client.update_episode_status(project_id, episode_id, "VIDEO_GENERATING")
+
         # 1. Get episode with script content from backend
         episode = backend_client.get_episode(project_id, episode_id)
         if not episode:
@@ -93,7 +96,7 @@ def render_video_task(
         # 6. Update backend Episode
         backend_client.update_episode_script(project_id, episode_id, {
             "videoUrl": minio_key,
-            "status": "completed",
+            "status": "COMPLETED",
             "duration": script.get("estimated_duration", duration_target),
         })
 
@@ -117,6 +120,11 @@ def render_video_task(
         logger.error(f"Video rendering failed: {exc}")
         duration_ms = int((time.time() - start_time) * 1000)
         task_logger.log_task_failure(task_id, task_name, str(exc), duration_ms)
+        backend_client.update_episode_status(
+            project_id, episode_id, "FAILED",
+            failed_step="video_rendering",
+            error_message=str(exc)[:500]
+        )
         self.retry(exc=exc, countdown=120)
 
 
