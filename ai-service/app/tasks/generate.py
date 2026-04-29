@@ -109,7 +109,7 @@ def generate_script_task(
 
         llm_client = llm_service.client
         response = llm_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=settings.LLM_MODEL,
             messages=[
                 {
                     "role": "system",

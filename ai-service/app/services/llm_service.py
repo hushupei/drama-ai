@@ -14,7 +14,7 @@ class LLMService:
             api_key=settings.OPENAI_API_KEY,
             base_url=settings.OPENAI_BASE_URL or "https://api.openai.com/v1"
         )
-        self.model = "gpt-4o-mini"  # Default model
+        self.model = settings.LLM_MODEL
 
     def analyze_chapters(self, content: str, max_chars: int = 8000) -> List[Dict]:
         """

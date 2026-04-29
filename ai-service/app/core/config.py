@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_BASE_URL: Optional[str] = None
+    LLM_MODEL: str = "deepseek-chat"
 
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
