@@ -69,7 +69,7 @@ export interface Episode {
   status: 'DRAFT' | 'SCRIPT_GENERATING' | 'SCRIPT_READY' | 'VIDEO_GENERATING' | 'COMPLETED' | 'FAILED'
   failedStep?: 'script_generation' | 'video_rendering' | null
   errorMessage?: string | null
-  chapter?: { title?: string } | null
+  chapter?: { id?: string; title?: string } | null
   createdAt: string
   updatedAt: string
 }

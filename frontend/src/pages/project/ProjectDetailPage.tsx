@@ -105,7 +105,7 @@ export default function ProjectDetailPage() {
     setGeneratingEpisodes((prev) => new Set(prev).add(ep.id))
     try {
       const res = await generateScript.mutateAsync({
-        chapter_id: '',
+        chapter_id: ep.chapter?.id || '',
         episode_id: ep.id,
         project_id: projectId,
         novel_id: novelId,
@@ -309,19 +309,34 @@ export default function ProjectDetailPage() {
     {
       title: '操作',
       key: 'action',
-      width: 100,
-      render: (_: unknown, record: Chapter) => (
-        <Button
-          type="link"
-          icon={<EyeOutlined />}
-          onClick={() => {
-            setChapterModalChapterId(record.id)
-            setChapterModalOpen(true)
-          }}
-        >
-          查看原文
-        </Button>
-      ),
+      width: 180,
+      render: (_: unknown, record: Chapter) => {
+        const matchingEpisode = episodes.find((ep: Episode) => ep.chapter?.id === record.id)
+        return (
+          <Space>
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                setChapterModalChapterId(record.id)
+                setChapterModalOpen(true)
+              }}
+            >
+              查看原文
+            </Button>
+            {matchingEpisode && (
+              <Button
+                type="link"
+                icon={<ThunderboltOutlined />}
+                loading={generatingEpisodes.has(matchingEpisode.id)}
+                onClick={() => handleGenerateSingle(matchingEpisode)}
+              >
+                生成剧本
+              </Button>
+            )}
+          </Space>
+        )
+      },
     },
   ]
 
@@ -381,6 +396,16 @@ export default function ProjectDetailPage() {
           >
             重新生成
           </Button>
+          {record.status === 'SCRIPT_READY' && (
+            <Button
+              type="link"
+              icon={<PlayCircleOutlined />}
+              loading={renderingEpisodes.has(record.id)}
+              onClick={() => handleRenderSingle(record)}
+            >
+              生成视频
+            </Button>
+          )}
         </Space>
       ),
     },
